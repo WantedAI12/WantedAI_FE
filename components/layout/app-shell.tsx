@@ -58,7 +58,7 @@ export function AppShell({
           <p className="text-xs font-medium">데이터 연결 상태</p>
           <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
             <span className="size-2 rounded-full bg-amber-400" />
-            백엔드 API 준비 중
+            OpenAPI v1 연결 구성됨
           </div>
         </div>
       </aside>
@@ -80,9 +80,13 @@ export function AppShell({
             <Badge variant="outline" className="hidden sm:inline-flex">
               R&amp;D Team
             </Badge>
-            <div className="grid size-9 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+            <Link
+              href="/login"
+              aria-label="로그인"
+              className="grid size-9 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+            >
               JS
-            </div>
+            </Link>
           </div>
         </header>
         {children}
