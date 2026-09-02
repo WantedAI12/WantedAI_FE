@@ -6,6 +6,7 @@ import type {
   CandidateResponse,
   CandidateVersionIngredient,
   CandidateVersionResponse,
+  CatalogSyncResponse,
   EvidenceLog,
   EvidenceReportResponse,
   ExperimentStatusLog,
@@ -24,6 +25,9 @@ import type {
   SensoryTestResponse,
   SensoryTestResultResponse,
   SignupRequest,
+  SupplyChangeImpact,
+  SupplyChangeResponse,
+  SupplyReviewDecisionResponse,
   TokenResponse,
 } from '@/types/domain';
 
@@ -176,6 +180,8 @@ export const ingredientApi = {
     apiRequest<IngredientResponse>(endpoints.ingredient(id)),
   sync: () =>
     apiRequest<JobResponse>(endpoints.catalogSync, { method: 'POST' }),
+  syncStatus: (jobId: number) =>
+    apiRequest<CatalogSyncResponse>(endpoints.catalogSyncJob(jobId)),
 };
 export const experimentApi = {
   history: (id: number) =>
@@ -184,5 +190,33 @@ export const experimentApi = {
     apiRequest<ExperimentStatusLog>(
       endpoints.experimentStatus(id),
       json({ status }),
+    ),
+};
+
+export const supplyApi = {
+  createChange: (
+    ingredientId: number,
+    body: { changeType: string; description: string; effectiveDate: string },
+  ) =>
+    apiRequest<JobResponse>(endpoints.supplyChanges(ingredientId), json(body)),
+  change: (changeId: number) =>
+    apiRequest<SupplyChangeResponse>(endpoints.supplyChange(changeId)),
+  affectedCandidates: (changeId: number) =>
+    apiRequest<SupplyChangeImpact[]>(endpoints.affectedCandidates(changeId)),
+  decisions: (candidateId: number) =>
+    apiRequest<SupplyReviewDecisionResponse[]>(
+      endpoints.supplyDecisions(candidateId),
+    ),
+  decide: (
+    candidateId: number,
+    body: {
+      supplyChangeId: number;
+      decision: 'KEEP' | 'MODIFY' | 'DISCARD';
+      comment?: string;
+    },
+  ) =>
+    apiRequest<SupplyReviewDecisionResponse>(
+      endpoints.supplyDecisions(candidateId),
+      json(body),
     ),
 };

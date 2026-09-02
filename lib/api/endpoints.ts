@@ -47,4 +47,12 @@ export const endpoints = {
   ingredients: '/ingredients',
   ingredient: (ingredientId: number) => `/ingredients/${ingredientId}`,
   catalogSync: '/ingredients/catalog-sync',
+  catalogSyncJob: (jobId: number) => `/ingredients/catalog-sync/${jobId}`,
+  supplyChanges: (ingredientId: number) =>
+    `/ingredients/${ingredientId}/supply-changes`,
+  supplyChange: (changeId: number) => `/supply-changes/${changeId}`,
+  affectedCandidates: (changeId: number) =>
+    `/supply-changes/${changeId}/affected-candidates`,
+  supplyDecisions: (candidateId: number) =>
+    `/candidates/${candidateId}/supply-review-decisions`,
 } as const;

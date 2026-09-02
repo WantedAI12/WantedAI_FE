@@ -186,6 +186,37 @@ export interface IngredientResponse {
   costPerUnit: number;
   supplyStatus: string;
 }
+export interface CatalogSyncResponse {
+  jobId: Id;
+  status: JobStatus;
+  referenceCount: number;
+  screenedCount: number;
+  activeTierCount: number;
+  syncedAt: string | null;
+}
+export interface SupplyChangeResponse {
+  changeId: Id;
+  ingredientId: Id;
+  changeType: string;
+  description: string;
+  effectiveDate: string;
+  status: string;
+  jobId: Id | null;
+}
+export interface SupplyChangeImpact {
+  candidateId: Id;
+  impactScore: number;
+  needsReview: boolean;
+}
+export interface SupplyReviewDecisionResponse {
+  decisionId: Id;
+  candidateId: Id;
+  supplyChangeId: Id;
+  decision: 'KEEP' | 'MODIFY' | 'DISCARD';
+  comment?: string;
+  decidedBy: Id;
+  decidedAt: string;
+}
 export interface ErrorResponse {
   success: false;
   error: {
