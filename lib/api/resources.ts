@@ -4,7 +4,6 @@ import type {
   ApprovalGateResponse,
   CandidateCompareRow,
   CandidateResponse,
-  CandidateVersionIngredient,
   CandidateVersionResponse,
   CatalogSyncResponse,
   EvidenceLog,
@@ -12,11 +11,13 @@ import type {
   ExperimentStatusLog,
   FragranceRequestCreate,
   FragranceRequestResponse,
+  FragranceRequestUpdate,
   IngredientResponse,
   JobResponse,
   LoginRequest,
   MemberResponse,
   PredictionResponse,
+  PredictionUncertaintyResponse,
   ProjectCreate,
   ProjectMemberResponse,
   ProjectResponse,
@@ -52,11 +53,39 @@ export const authApi = {
   },
   signup: (body: SignupRequest) =>
     apiRequest<MemberResponse>(endpoints.auth.signup, json(body), false),
+  async refresh() {
+    const refreshToken = tokenStorage.getRefreshToken();
+    if (!refreshToken) return null;
+    const tokens = await apiRequest<TokenResponse>(
+      endpoints.auth.refresh,
+      json({ refreshToken }),
+      false,
+    );
+    tokenStorage.set(tokens);
+    return tokens;
+  },
   async logout() {
-    await apiRequest<void>(endpoints.auth.logout, { method: 'POST' });
-    tokenStorage.clear();
+    const refreshToken = tokenStorage.getRefreshToken();
+    try {
+      if (refreshToken) {
+        await apiRequest<void>(
+          endpoints.auth.logout,
+          json({ refreshToken }),
+          false,
+        );
+      }
+    } finally {
+      tokenStorage.clear();
+    }
   },
   me: () => apiRequest<MemberResponse>(endpoints.me),
+  updateProfile: (name: string) =>
+    apiRequest<MemberResponse>(endpoints.me, patch({ name })),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiRequest<void>(
+      endpoints.mePassword,
+      patch({ currentPassword, newPassword }),
+    ),
 };
 
 export const projectApi = {
@@ -80,7 +109,7 @@ export const jobApi = {
   retry: (id: number) =>
     apiRequest<void>(endpoints.jobRetry(id), { method: 'POST' }),
   cancel: (id: number) =>
-    apiRequest<void>(endpoints.jobCancel(id), { method: 'POST' }),
+    apiRequest<JobResponse>(endpoints.jobCancel(id), { method: 'POST' }),
 };
 export const requestApi = {
   list: (projectId: number, status?: string) =>
@@ -94,10 +123,10 @@ export const requestApi = {
     ),
   detail: (id: number) =>
     apiRequest<FragranceRequestResponse>(endpoints.request(id)),
-  update: (id: number, structuredIntent: Record<string, unknown>) =>
+  update: (id: number, body: FragranceRequestUpdate) =>
     apiRequest<FragranceRequestResponse>(
       endpoints.request(id),
-      patch({ structuredIntent }),
+      patch(body),
     ),
   confirm: (id: number) =>
     apiRequest<FragranceRequestResponse>(endpoints.requestConfirm(id), {
@@ -117,23 +146,14 @@ export const candidateApi = {
     ),
   detail: (id: number) =>
     apiRequest<CandidateResponse>(endpoints.candidate(id)),
-  update: (id: number, ingredients: CandidateVersionIngredient[]) =>
-    apiRequest<CandidateResponse>(
-      endpoints.candidate(id),
-      patch({ ingredients }),
-    ),
-  duplicate: (id: number) =>
-    apiRequest<CandidateResponse>(endpoints.candidateDuplicate(id), {
-      method: 'POST',
-    }),
   versions: (id: number) =>
     apiRequest<CandidateVersionResponse[]>(endpoints.candidateVersions(id)),
+  version: (id: number) =>
+    apiRequest<CandidateVersionResponse>(endpoints.candidateVersion(id)),
 };
 export const safetyApi = {
   detail: (id: number) =>
     apiRequest<SafetyEvaluationResponse>(endpoints.safety(id)),
-  rerun: (id: number) =>
-    apiRequest<void>(endpoints.safety(id), { method: 'POST' }),
   gates: (id: number) =>
     apiRequest<ApprovalGateResponse[]>(endpoints.approvalGate(id)),
   decide: (id: number, decision: 'APPROVED' | 'REJECTED', comment?: string) =>
@@ -145,10 +165,8 @@ export const safetyApi = {
 export const predictionApi = {
   detail: (id: number) =>
     apiRequest<PredictionResponse>(endpoints.predictions(id)),
-  recalculate: (id: number) =>
-    apiRequest<void>(endpoints.predictions(id), { method: 'POST' }),
   uncertainty: (id: number) =>
-    apiRequest<PredictionResponse>(endpoints.uncertainty(id)),
+    apiRequest<PredictionUncertaintyResponse>(endpoints.uncertainty(id)),
 };
 export const evidenceApi = {
   logs: (id: number) => apiRequest<EvidenceLog[]>(endpoints.evidence(id)),

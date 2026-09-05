@@ -6,6 +6,7 @@ export const endpoints = {
     logout: '/auth/logout',
   },
   me: '/members/me',
+  mePassword: '/members/me/password',
   projects: '/projects',
   project: (projectId: number) => `/projects/${projectId}`,
   projectMembers: (projectId: number) => `/projects/${projectId}/members`,

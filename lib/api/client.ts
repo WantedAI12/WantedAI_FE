@@ -1,4 +1,8 @@
-import type { ErrorResponse, TokenResponse } from '@/types/domain';
+import type {
+  ApiSuccessResponse,
+  ErrorResponse,
+  TokenResponse,
+} from '@/types/domain';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080/api/v1';
@@ -59,7 +63,7 @@ export async function apiRequest<T>(
 
   if (response.status === 204) return undefined as T;
   const payload = (await response.json().catch(() => null)) as
-    | T
+    | ApiSuccessResponse<T>
     | ErrorResponse
     | null;
   if (!response.ok) {
@@ -74,7 +78,20 @@ export async function apiRequest<T>(
       error?.details,
     );
   }
-  return payload as T;
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'success' in payload &&
+    payload.success === true
+  ) {
+    return payload.data;
+  }
+
+  throw new ApiError(
+    response.status,
+    'INVALID_RESPONSE',
+    '백엔드 응답 형식이 올바르지 않습니다.',
+  );
 }
 
 export function apiUrl(path: string) {

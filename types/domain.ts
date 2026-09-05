@@ -14,6 +14,10 @@ export interface TokenResponse {
   refreshToken: string;
   expiresIn: number;
 }
+export interface ApiSuccessResponse<T> {
+  success: true;
+  data: T;
+}
 export interface LoginRequest {
   email: string;
   password: string;
@@ -55,36 +59,78 @@ export type JobStatus =
   | 'CANCELLED';
 export interface JobResponse {
   jobId: Id;
-  jobType: string;
+  jobType:
+    | 'REQUEST_STRUCTURING'
+    | 'CANDIDATE_GENERATION'
+    | 'CATALOG_SYNC'
+    | 'EVIDENCE_REPORT'
+    | 'SUPPLY_IMPACT_ANALYSIS'
+    | 'PREDICTION';
   status: JobStatus;
   retryable: boolean;
   failureReason: string | null;
   resultRefId: Id | null;
+  createdAt: string;
+  updatedAt: string;
 }
-export type FragranceRequestStatus = 'MISSING_FIELDS' | 'CONFIRMED' | 'BLOCKED';
+export type ProductCategory =
+  | 'EAU_DE_PARFUM'
+  | 'EAU_DE_TOILETTE'
+  | 'EAU_DE_COLOGNE'
+  | 'SHAMPOO'
+  | 'BODY_WASH'
+  | 'CANDLE'
+  | 'ROOM_SPRAY'
+  | 'DIFFUSER';
+export type TargetRegion = 'KR' | 'EU' | 'US';
+export type Intensity = 'LIGHT' | 'MODERATE' | 'STRONG';
+export type Longevity = 'LOW' | 'MEDIUM' | 'HIGH';
+export type FragranceRequestStatus =
+  | 'DRAFT'
+  | 'MISSING_FIELDS'
+  | 'CONFIRMED'
+  | 'BLOCKED';
 export interface FragranceRequestCreate {
   rawText: string;
-  productType?: string;
-  usageConcentration?: string | null;
-  market?: string;
-  productCategory?: string;
+  productCategory?: ProductCategory;
+  targetRegion?: TargetRegion;
   riskTier?: 1 | 2;
+  intensity?: Intensity;
+  longevity?: Longevity;
+  usageConcentrationPercent?: number;
   maxIngredientCount?: number;
+  maxIngredientPricePerKg?: number;
+  accords?: string[];
+}
+export type FragranceRequestUpdate = Partial<FragranceRequestCreate>;
+export interface StructuredIntent {
+  rawText: string;
+  accords: string[];
+  intensity: Intensity | null;
+  longevity: Longevity | null;
+  productCategory: ProductCategory | null;
+  targetRegion: TargetRegion | null;
+  riskTier: 1 | 2 | null;
+  usageConcentrationPercent: number | null;
+  maxIngredientCount: number | null;
+  maxIngredientPricePerKg: number | null;
 }
 export interface FragranceRequestResponse {
   requestId: Id;
   status: FragranceRequestStatus;
-  structuredIntent: Record<string, unknown>;
+  structuredIntent: StructuredIntent;
   missingFields: string[];
-  confidence: number;
-  isOutOfDistribution: boolean;
-  schemaVersion: string;
-  jobId: Id | null;
+  createdAt: string;
+  updatedAt: string;
 }
 export interface CandidateVersionIngredient {
-  ingredientId: Id;
-  ingredientName?: string;
-  ratio: number;
+  ingredientId: string;
+  name: string;
+  pyramid: string;
+  concentratePercent: number;
+  finishedProductPercent: number;
+  pricePerKg: number;
+  availability: number;
 }
 export interface GenerationMeta {
   provider: string;
@@ -98,9 +144,15 @@ export interface CandidateVersionResponse {
   parentVersionId: Id | null;
   ingredients: CandidateVersionIngredient[];
   cost: number;
-  supplyConditions: Record<string, unknown>;
   generationRationale: string;
   generationMeta: GenerationMeta;
+  temporal: {
+    timepointsMinutes: number[];
+    profile: Array<Record<string, unknown>>;
+    ingredientProfile: Array<Record<string, unknown>>;
+    concentrationBasis: Record<string, unknown> | null;
+    claimBoundary: string;
+  };
   createdAt: string;
 }
 export type CandidateStatus =
@@ -117,16 +169,32 @@ export interface CandidateResponse {
 }
 export interface CandidateCompareRow {
   candidateId: Id;
+  status: CandidateStatus;
   goalMatchScore: number;
   cost: number;
-  supplyStability: string;
-  predictionSummary: Record<string, unknown>;
+  supplyStability: number;
+  modelApplicabilityPercent: number;
 }
 export interface SafetyEvaluationResponse {
   candidateId: Id;
-  passed: boolean;
-  resultDetail: Record<string, unknown>;
-  evaluatedAt: string;
+  versionId: Id;
+  status: string;
+  internalGatePassed: boolean;
+  manufacturingReady: boolean;
+  validationLevel: string;
+  evidenceCoveragePercent: number;
+  regulatoryDataComplete: boolean;
+  internalEvidenceComplete: boolean;
+  allergenQuantificationComplete: boolean;
+  targetRegion: string;
+  productCategory: string;
+  auditId: string;
+  standardsCheckedOn: string;
+  standardsReviewDue: string;
+  violations: unknown;
+  warnings: unknown;
+  missingDocuments: unknown;
+  potentialEuAllergens: unknown;
 }
 export interface ApprovalGateResponse {
   gateId: Id;
@@ -137,12 +205,44 @@ export interface ApprovalGateResponse {
   reviewedAt: string;
 }
 export interface PredictionResponse {
-  predictionId: Id;
-  proxyScores: Record<string, unknown>;
-  uncertainty: number;
-  isOutOfDistribution: boolean;
-  abstained: boolean;
-  abstainReason: string | null;
+  candidateId: Id;
+  versionId: Id;
+  status: string;
+  similarityScore: number;
+  similarityKind: string;
+  confidence: number;
+  modelApplicabilityPercent: number;
+  scientificModelDomainPassed: boolean;
+  scientificUncertaintyKind: string;
+  olfactoryValidationStatus: string;
+  perceptualPredictionStatus: string;
+  humanValidation: {
+    similarity90ClaimAuthorized: boolean;
+    actualOlfactorySimilarityScore: number | null;
+    actualOlfactoryLowerBound95: number | null;
+    discriminationProbability: number | null;
+    discriminationLowerBound95: number | null;
+    discriminationUpperBound95: number | null;
+  };
+  limitations: unknown;
+  simulation: PredictionSimulation;
+  diagnostics: unknown;
+}
+export interface PredictionSimulation {
+  status: string;
+  confidence: number;
+  p05: number;
+  p95: number;
+  draws: number;
+}
+export interface PredictionUncertaintyResponse {
+  candidateId: Id;
+  versionId: Id;
+  modelApplicabilityPercent: number;
+  scientificModelDomainPassed: boolean;
+  scientificUncertaintyKind: string;
+  simulation: PredictionSimulation;
+  diagnostics: unknown;
 }
 export interface ExperimentStatusLog {
   candidateId: Id;
