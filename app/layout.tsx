@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { DesktopViewportFit } from '@/components/layout/desktop-viewport-fit';
 import './globals.css';
+import './wireframe-exact.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,6 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <DesktopViewportFit />
         {children}
       </body>
     </html>

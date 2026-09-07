@@ -5,7 +5,7 @@ import type {
 } from '@/types/domain';
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080/api/v1';
+  process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1';
 const ACCESS_TOKEN_KEY = 'perfumery.access-token';
 const REFRESH_TOKEN_KEY = 'perfumery.refresh-token';
 
@@ -23,19 +23,25 @@ export class ApiError extends Error {
 function getStoredToken(key: string) {
   return typeof window === 'undefined'
     ? null
-    : window.sessionStorage.getItem(key);
+    : window.sessionStorage.getItem(key) ?? window.localStorage.getItem(key);
 }
 
 export const tokenStorage = {
   getAccessToken: () => getStoredToken(ACCESS_TOKEN_KEY),
   getRefreshToken: () => getStoredToken(REFRESH_TOKEN_KEY),
-  set(tokens: TokenResponse) {
-    window.sessionStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-    window.sessionStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+  set(tokens: TokenResponse, remember = false) {
+    const storage = remember ? window.localStorage : window.sessionStorage;
+    const otherStorage = remember ? window.sessionStorage : window.localStorage;
+    otherStorage.removeItem(ACCESS_TOKEN_KEY);
+    otherStorage.removeItem(REFRESH_TOKEN_KEY);
+    storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+    storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
   },
   clear() {
     window.sessionStorage.removeItem(ACCESS_TOKEN_KEY);
     window.sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.localStorage.removeItem(REFRESH_TOKEN_KEY);
   },
 };
 

@@ -13,6 +13,7 @@ import type {
   FragranceRequestResponse,
   FragranceRequestUpdate,
   IngredientResponse,
+  IngredientDetailResponse,
   JobResponse,
   LoginRequest,
   MemberResponse,
@@ -24,10 +25,12 @@ import type {
   Role,
   SafetyEvaluationResponse,
   SensoryTestResponse,
+  SensoryTestDetailResponse,
   SensoryTestResultResponse,
   SignupRequest,
   SupplyChangeImpact,
   SupplyChangeResponse,
+  SupplyChangeType,
   SupplyReviewDecisionResponse,
   TokenResponse,
 } from '@/types/domain';
@@ -42,13 +45,13 @@ const patch = (body: unknown): RequestInit => ({
 });
 
 export const authApi = {
-  async login(body: LoginRequest) {
+  async login(body: LoginRequest, remember = false) {
     const tokens = await apiRequest<TokenResponse>(
       endpoints.auth.login,
       json(body),
       false,
     );
-    tokenStorage.set(tokens);
+    tokenStorage.set(tokens, remember);
     return tokens;
   },
   signup: (body: SignupRequest) =>
@@ -102,6 +105,15 @@ export const projectApi = {
       endpoints.projectMembers(id),
       json({ email, role }),
     ),
+  changeMemberRole: (id: number, memberId: number, role: Role) =>
+    apiRequest<ProjectMemberResponse>(
+      endpoints.projectMember(id, memberId),
+      patch({ role }),
+    ),
+  removeMember: (id: number, memberId: number) =>
+    apiRequest<void>(endpoints.projectMember(id, memberId), {
+      method: 'DELETE',
+    }),
 };
 
 export const jobApi = {
@@ -178,11 +190,15 @@ export const evidenceApi = {
       json({ planDetail }),
     ),
   test: (id: number) =>
-    apiRequest<SensoryTestResponse>(endpoints.sensoryTest(id)),
-  addResult: (id: number, resultData: Record<string, unknown>) =>
+    apiRequest<SensoryTestDetailResponse>(endpoints.sensoryTest(id)),
+  addResult: (
+    id: number,
+    resultData: Record<string, unknown>,
+    correlationWithPrediction?: number,
+  ) =>
     apiRequest<SensoryTestResultResponse>(
       endpoints.sensoryResults(id),
-      json({ resultData }),
+      json({ resultData, correlationWithPrediction }),
     ),
   createReport: (id: number) =>
     apiRequest<JobResponse>(endpoints.evidenceReports(id), { method: 'POST' }),
@@ -190,14 +206,19 @@ export const evidenceApi = {
     apiRequest<EvidenceReportResponse>(endpoints.evidenceReport(id)),
 };
 export const ingredientApi = {
-  list: (keyword?: string) =>
-    apiRequest<IngredientResponse[]>(
-      `${endpoints.ingredients}${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ''}`,
-    ),
-  detail: (id: number) =>
-    apiRequest<IngredientResponse>(endpoints.ingredient(id)),
-  sync: () =>
-    apiRequest<JobResponse>(endpoints.catalogSync, { method: 'POST' }),
+  list: (query?: string, pyramid?: string) => {
+    const search = new URLSearchParams({
+        ...(query ? { query } : {}),
+        ...(pyramid ? { pyramid } : {}),
+      }).toString();
+    return apiRequest<IngredientResponse[]>(
+      `${endpoints.ingredients}${search ? `?${search}` : ''}`,
+    );
+  },
+  detail: (id: string) =>
+    apiRequest<IngredientDetailResponse>(endpoints.ingredient(id)),
+  sync: (projectId: number) =>
+    apiRequest<JobResponse>(endpoints.catalogSync, json({ projectId })),
   syncStatus: (jobId: number) =>
     apiRequest<CatalogSyncResponse>(endpoints.catalogSyncJob(jobId)),
 };
@@ -213,10 +234,19 @@ export const experimentApi = {
 
 export const supplyApi = {
   createChange: (
-    ingredientId: number,
-    body: { changeType: string; description: string; effectiveDate: string },
+    ingredientId: string,
+    body: {
+      projectId: number;
+      changeType: SupplyChangeType;
+      previousPricePerKg?: number;
+      newPricePerKg?: number;
+      note?: string;
+    },
   ) =>
-    apiRequest<JobResponse>(endpoints.supplyChanges(ingredientId), json(body)),
+    apiRequest<SupplyChangeResponse>(
+      endpoints.supplyChanges(ingredientId),
+      json(body),
+    ),
   change: (changeId: number) =>
     apiRequest<SupplyChangeResponse>(endpoints.supplyChange(changeId)),
   affectedCandidates: (changeId: number) =>
@@ -228,9 +258,9 @@ export const supplyApi = {
   decide: (
     candidateId: number,
     body: {
-      supplyChangeId: number;
-      decision: 'KEEP' | 'MODIFY' | 'DISCARD';
-      comment?: string;
+      supplyChangeId?: number;
+      decision: 'KEEP_FORMULA' | 'REVISE_FORMULA' | 'DISCARD_CANDIDATE';
+      rationale: string;
     },
   ) =>
     apiRequest<SupplyReviewDecisionResponse>(

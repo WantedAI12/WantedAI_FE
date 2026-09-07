@@ -46,11 +46,12 @@ export const endpoints = {
     `/candidates/${candidateId}/evidence-reports`,
   evidenceReport: (reportId: number) => `/evidence-reports/${reportId}`,
   ingredients: '/ingredients',
-  ingredient: (ingredientId: number) => `/ingredients/${ingredientId}`,
+  ingredient: (ingredientId: string) =>
+    `/ingredients/${encodeURIComponent(ingredientId)}`,
   catalogSync: '/ingredients/catalog-sync',
   catalogSyncJob: (jobId: number) => `/ingredients/catalog-sync/${jobId}`,
-  supplyChanges: (ingredientId: number) =>
-    `/ingredients/${ingredientId}/supply-changes`,
+  supplyChanges: (ingredientId: string) =>
+    `/ingredients/${encodeURIComponent(ingredientId)}/supply-changes`,
   supplyChange: (changeId: number) => `/supply-changes/${changeId}`,
   affectedCandidates: (changeId: number) =>
     `/supply-changes/${changeId}/affected-candidates`,

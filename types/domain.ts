@@ -38,18 +38,21 @@ export interface MemberResponse {
 export interface ProjectResponse {
   projectId: Id;
   name: string;
-  description?: string;
+  description: string | null;
+  myRole: Role;
+  memberCount: number;
   createdAt: string;
 }
 export interface ProjectCreate {
   name: string;
-  description?: string;
+  description?: string | null;
 }
 export interface ProjectMemberResponse {
   memberId: Id;
   email: string;
   name: string;
   role: Role;
+  joinedAt: string;
 }
 export type JobStatus =
   | 'PENDING'
@@ -143,8 +146,8 @@ export interface CandidateVersionResponse {
   candidateId: Id;
   parentVersionId: Id | null;
   ingredients: CandidateVersionIngredient[];
-  cost: number;
-  generationRationale: string;
+  cost: number | null;
+  generationRationale: string | null;
   generationMeta: GenerationMeta;
   temporal: {
     timepointsMinutes: number[];
@@ -152,7 +155,8 @@ export interface CandidateVersionResponse {
     ingredientProfile: Array<Record<string, unknown>>;
     concentrationBasis: Record<string, unknown> | null;
     claimBoundary: string;
-  };
+  } | null;
+  createdBy: Id;
   createdAt: string;
 }
 export type CandidateStatus =
@@ -178,19 +182,19 @@ export interface CandidateCompareRow {
 export interface SafetyEvaluationResponse {
   candidateId: Id;
   versionId: Id;
-  status: string;
-  internalGatePassed: boolean;
-  manufacturingReady: boolean;
-  validationLevel: string;
-  evidenceCoveragePercent: number;
-  regulatoryDataComplete: boolean;
-  internalEvidenceComplete: boolean;
-  allergenQuantificationComplete: boolean;
-  targetRegion: string;
-  productCategory: string;
-  auditId: string;
-  standardsCheckedOn: string;
-  standardsReviewDue: string;
+  status: string | null;
+  internalGatePassed: boolean | null;
+  manufacturingReady: boolean | null;
+  validationLevel: string | null;
+  evidenceCoveragePercent: number | null;
+  regulatoryDataComplete: boolean | null;
+  internalEvidenceComplete: boolean | null;
+  allergenQuantificationComplete: boolean | null;
+  targetRegion: string | null;
+  productCategory: string | null;
+  auditId: string | null;
+  standardsCheckedOn: string | null;
+  standardsReviewDue: string | null;
   violations: unknown;
   warnings: unknown;
   missingDocuments: unknown;
@@ -207,17 +211,17 @@ export interface ApprovalGateResponse {
 export interface PredictionResponse {
   candidateId: Id;
   versionId: Id;
-  status: string;
-  similarityScore: number;
-  similarityKind: string;
-  confidence: number;
-  modelApplicabilityPercent: number;
-  scientificModelDomainPassed: boolean;
-  scientificUncertaintyKind: string;
-  olfactoryValidationStatus: string;
-  perceptualPredictionStatus: string;
+  status: string | null;
+  similarityScore: number | null;
+  similarityKind: string | null;
+  confidence: number | null;
+  modelApplicabilityPercent: number | null;
+  scientificModelDomainPassed: boolean | null;
+  scientificUncertaintyKind: string | null;
+  olfactoryValidationStatus: string | null;
+  perceptualPredictionStatus: string | null;
   humanValidation: {
-    similarity90ClaimAuthorized: boolean;
+    similarity90ClaimAuthorized: boolean | null;
     actualOlfactorySimilarityScore: number | null;
     actualOlfactoryLowerBound95: number | null;
     discriminationProbability: number | null;
@@ -229,18 +233,18 @@ export interface PredictionResponse {
   diagnostics: unknown;
 }
 export interface PredictionSimulation {
-  status: string;
-  confidence: number;
-  p05: number;
-  p95: number;
-  draws: number;
+  status: string | null;
+  confidence: number | null;
+  p05: number | null;
+  p95: number | null;
+  draws: number | null;
 }
 export interface PredictionUncertaintyResponse {
   candidateId: Id;
   versionId: Id;
-  modelApplicabilityPercent: number;
-  scientificModelDomainPassed: boolean;
-  scientificUncertaintyKind: string;
+  modelApplicabilityPercent: number | null;
+  scientificModelDomainPassed: boolean | null;
+  scientificUncertaintyKind: string | null;
   simulation: PredictionSimulation;
   diagnostics: unknown;
 }
@@ -251,17 +255,18 @@ export interface ExperimentStatusLog {
   changedAt: string;
 }
 export interface EvidenceLog {
-  candidateId: Id;
-  candidateVersionId: Id | null;
   action: string;
+  candidateVersionId: Id | null;
   actorId: Id;
-  createdAt: string;
+  occurredAt: string;
+  detail: string | null;
 }
 export interface SensoryTestResultResponse {
   resultId: Id;
   testId: Id;
   resultData: Record<string, unknown>;
   correlationWithPrediction: number | null;
+  recordedBy: Id;
   recordedAt: string;
 }
 export interface SensoryTestResponse {
@@ -270,52 +275,76 @@ export interface SensoryTestResponse {
   planDetail: string;
   status: 'PLANNED' | 'COMPLETED';
   results: SensoryTestResultResponse[];
+  createdAt: string;
+}
+export interface SensoryTestDetailResponse {
+  test: SensoryTestResponse;
+  predictedSimilarityScore: number | null;
 }
 export interface EvidenceReportResponse {
   reportId: Id;
   candidateId: Id;
-  status: string;
+  status: JobStatus;
+  reportData: Record<string, unknown> | null;
   fileUrl: string | null;
 }
 export interface IngredientResponse {
-  ingredientId: Id;
+  ingredientId: string;
   name: string;
-  casNumber: string;
-  safetyData: Record<string, unknown>;
-  regulatoryData: Record<string, unknown>;
-  costPerUnit: number;
-  supplyStatus: string;
+  pyramid: string | null;
+  pricePerKg: number | null;
+  availability: number | null;
+  usedInCandidateCount: number;
+  lastSeenAt: string;
+}
+export interface IngredientDetailResponse {
+  ingredient: IngredientResponse;
+  usedByCandidateIds: Id[];
 }
 export interface CatalogSyncResponse {
   jobId: Id;
   status: JobStatus;
-  referenceCount: number;
-  screenedCount: number;
-  activeTierCount: number;
+  referenceCount: number | null;
+  screenedCount: number | null;
+  activeTierCount: number | null;
+  catalogVersion: string | null;
+  registrySha256: string | null;
+  snapshot: Record<string, unknown> | null;
   syncedAt: string | null;
 }
+export type SupplyChangeType =
+  | 'PRICE_INCREASE'
+  | 'PRICE_DECREASE'
+  | 'DISCONTINUED'
+  | 'LEAD_TIME_INCREASE'
+  | 'SUPPLY_RESTORED'
+  | 'OTHER';
 export interface SupplyChangeResponse {
   changeId: Id;
-  ingredientId: Id;
-  changeType: string;
-  description: string;
-  effectiveDate: string;
-  status: string;
-  jobId: Id | null;
+  projectId: Id;
+  ingredientId: string;
+  changeType: SupplyChangeType;
+  previousPricePerKg: number | null;
+  newPricePerKg: number | null;
+  note: string | null;
+  analysisStatus: JobStatus;
+  affectedCandidateCount: number;
+  createdAt: string;
 }
 export interface SupplyChangeImpact {
   candidateId: Id;
-  impactScore: number;
-  needsReview: boolean;
+  candidateVersionId: Id;
+  ingredientConcentratePercent: number | null;
+  reviewStatus: 'PENDING_REVIEW' | 'REVIEWED';
 }
 export interface SupplyReviewDecisionResponse {
   decisionId: Id;
   candidateId: Id;
-  supplyChangeId: Id;
-  decision: 'KEEP' | 'MODIFY' | 'DISCARD';
-  comment?: string;
+  supplyChangeId: Id | null;
+  decision: 'KEEP_FORMULA' | 'REVISE_FORMULA' | 'DISCARD_CANDIDATE';
+  rationale: string;
   decidedBy: Id;
-  decidedAt: string;
+  createdAt: string;
 }
 export interface ErrorResponse {
   success: false;

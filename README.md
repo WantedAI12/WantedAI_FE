@@ -10,7 +10,8 @@ cp .env.example .env.local
 npm run dev
 ```
 
-기본 주소는 `http://localhost:3000`이며 백엔드 API 기본 주소는 `http://localhost:8080/api/v1`입니다.
+기본 주소는 `http://localhost:3000`입니다. 개발 중 `/api/v1` 요청은
+`http://localhost:8080`에서 실행 중인 백엔드로 전달됩니다.
 
 ## 주요 구조
 
@@ -22,4 +23,5 @@ npm run dev
 - `lib/api`: API 클라이언트와 엔드포인트
 - `types`: 백엔드 도메인 기반 공통 타입
 
-`lib/api/resources.ts`에 OpenAPI v1의 인증·프로젝트·요청·후보·안전·예측·실험·증거·원료 API가 타입과 함께 연결되어 있습니다. 현재 백엔드 저장소에는 컨트롤러가 없어 실제 응답 검증은 서버 구현 후 진행해야 합니다.
+`lib/api/resources.ts`에 OpenAPI v1.6 및 현재 Spring 백엔드 컨트롤러의
+인증·프로젝트·요청·후보·안전·예측·실험·증거·원료·공급 API가 타입과 함께 연결되어 있습니다.
