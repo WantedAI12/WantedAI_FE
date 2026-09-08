@@ -34,11 +34,13 @@ export function SignupForm() {
     <Link href="/" className="wire-signup-brand">PERFUMERY AI CORE</Link>
     <form className="wire-signup-form" onSubmit={submit}>
       {error && <p className="signup-error">{error}</p>}
-      <label className="wire-signup-row row-1"><span>닉네임</span><input className="wire-signup-input" name="name" required placeholder="닉네임을 입력하세요." /></label>
-      <label className="wire-signup-row row-2"><span>이메일</span><input className="wire-signup-input" name="email" type="email" required placeholder="이메일을 입력하세요." /></label>
-      <label className="wire-signup-row row-3"><span>비밀번호</span><input className="wire-signup-input" name="password" type="password" required placeholder="비밀번호를 입력하세요." /></label>
-      <label className="wire-signup-row row-4"><span>비밀번호 확인</span><input className="wire-signup-input" name="confirm" type="password" required placeholder="비밀번호를 다시 입력하세요." /></label>
-      <div className="wire-signup-row row-5 wire-signup-actions"><span aria-hidden="true" /><button type="submit" className="wire-signup-submit">회원가입</button></div>
+      <label className="wire-signup-row row-1"><span>이메일</span><input className="wire-signup-input" name="email" type="email" required placeholder="이메일을 입력하세요." /></label>
+      <label className="wire-signup-row row-2"><span>비밀번호</span><input className="wire-signup-input" name="password" type="password" required placeholder="비밀번호를 입력하세요." /></label>
+      <label className="wire-signup-row row-3"><span>비밀번호 확인</span><input className="wire-signup-input" name="confirm" type="password" required placeholder="비밀번호를 다시 입력하세요." /></label>
+      <label className="wire-signup-row row-4"><span>이름</span><input className="wire-signup-input" name="name" required placeholder="이름을 입력하세요." /></label>
+      <label className="wire-signup-row row-5"><span>소속/회사명</span><input className="wire-signup-input" name="company" placeholder="소속 또는 회사명을 입력하세요." /></label>
+      <div className="wire-signup-row row-6 wire-signup-actions"><span aria-hidden="true" /><button type="submit" className="wire-signup-submit">회원가입</button></div>
+      <p className="wire-signup-login">이미 계정이 있으신가요? <Link href="/login">로그인</Link></p>
     </form>
   </div></main>;
 }

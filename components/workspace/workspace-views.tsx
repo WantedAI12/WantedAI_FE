@@ -3,23 +3,17 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { ProjectSidebar } from '@/components/layout/project-sidebar';
 
 function Rail({ side = 'left' }: { side?: 'left' | 'right' }) {
-  return <aside className={`wf-rail wf-rail-${side}`} />;
+  return side === 'left' ? <ProjectSidebar /> : <aside className="wf-rail wf-rail-right" />;
 }
 
 export function RequestWorkspace() {
   const [description, setDescription] = useState('');
-  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const example = '깨끗하고 산뜻한 시트러스 향. 첫 향은 밝고 상쾌하게,\n잔향은 은은하고 오래 지속되도록. 샴푸용, 원료 비용은 kg당 4만원 이하.';
 
-  const toggleKeyword = (keyword: string) => {
-    setSelectedKeywords((current) => current.includes(keyword)
-      ? current.filter((item) => item !== keyword)
-      : [...current, keyword]);
-  };
-
-  return <div className="wf-layout wf-request-page"><Rail /><section className="wf-main"><div className="wf-request"><h1 className="wf-title">새로운 향을 만들고 싶나요?</h1><p className="wf-sub">향 콘셉트를 자연어로 설명해주세요.</p><textarea className="wf-textarea" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={2000} placeholder={example}/><p className="wf-count" aria-live="polite">{description.length}/2000</p><p className="wf-chips-label">참고 키워드 (선택)</p><div className="wf-chips">{['시트러스','깨끗한','산뜻한','샴푸','지속성','저비용'].map(keyword=>{const selected=selectedKeywords.includes(keyword);return <button type="button" className={`wf-chip ${selected?'is-selected':''}`} aria-pressed={selected} onClick={()=>toggleKeyword(keyword)} key={keyword}>{selected?'✓ ':'+ '}{keyword}</button>})}</div><div className="wf-next"><Link href="/requests/structured" className="wf-btn wf-btn-dark" onClick={()=>sessionStorage.setItem('perfumery.request-draft',JSON.stringify({description,keywords:selectedKeywords}))}>다음</Link></div></div></section><Rail side="right" /></div>;
+  return <div className="wf-layout wf-request-page"><Rail /><section className="wf-main"><div className="wf-request"><h1 className="wf-title">새로운 향을 만들고 싶나요?</h1><p className="wf-sub">향 콘셉트를 자연어로 설명해주세요.</p><textarea className="wf-textarea" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={2000} placeholder={example}/><p className="wf-count" aria-live="polite">{description.length}/2000</p><div className="wf-request-fields"><label>사용 제품<input placeholder="바디로션 (Leave-on)"/></label><label>목표 사용 농도<input placeholder="0.6% – 0.9%"/></label><label>가격 상한 (원료비/100ml)<input placeholder="4,500원"/></label><label>필수 제약<input placeholder="IFRA 51차 준수, 알러젠 최소화"/></label></div><div className="wf-next"><Link href="/requests/structured" className="wf-btn wf-btn-dark" onClick={()=>sessionStorage.setItem('perfumery.request-draft',JSON.stringify({description}))}>다음</Link></div></div></section><Rail side="right" /></div>;
 }
 
 const intentRows = [['ACCORD','Woody\nMusk'],['TOP NOTE','Citrus\nLight'],['LONGEVITY','≥ 8h @ Leave-on'],['IMPRESSION','Warm / Soft'],['PRICE CAP','₩4,500 / 100ml'],['INTENSITY','●●●○○']];
@@ -29,11 +23,16 @@ export function StructuredWorkspace() {
 }
 
 function FormulaCard({ n }: { n: number }) {
-  return <Link href="/formulas/1" className="wf-card"><div className="wf-tags"><span className="wf-tag">Woody · Musk</span><span className="wf-tag">Warm / Soft</span></div><Image className="wf-arrow" src="/figma/asset-2.svg" alt="상세 보기" width={55} height={55}/><h2 className="wf-card-name">FORMULA {String(n).padStart(2,'0')}</h2><div className="wf-card-meta"><span>목표 일치도</span><span>92%</span><span>예상비용</span><span>₩4,200</span><span>지속성</span><span>8.6H</span></div></Link>;
+  return <Link href="/formulas/1" className="wf-card"><div className="wf-tags"><span className="wf-tag">Woody · Musk</span><span className="wf-tag">Warm / Soft</span></div><Image className="wf-arrow" src="/figma/asset-2.svg" alt="상세 보기" width={55} height={55}/><h2 className="wf-card-name">FORMULA {String(n).padStart(2,'0')}</h2><time className="wf-card-date">2026.09.05</time><div className="wf-card-meta wf-card-meta-default"><span>목표 일치도</span><span>92%</span><span>예상비용</span><span>₩4,200</span><span>지속성</span><span>8.6H</span></div><div className="wf-card-meta wf-card-meta-hover"><span>목표 일치도</span><span>92%</span><span>지속성</span><span>8.6H</span><span>공급 리스크</span><span>중간</span><span>예상비용</span><span>₩4,200</span><span>안전성</span><span>통과</span><span>적용범위</span><span>범위 내</span></div></Link>;
 }
 
 export function FormulaWorkspace() {
-  return <div className="wf-layout wf-formula-page"><Rail /><section className="wf-main"><h1 className="wf-title">후보 조향식 목록</h1><p className="wf-sub">상세를 확인하고 최적의 조향식을 선택하세요.</p><div className="wf-cards">{[1,2,3,1].map((n,i)=><FormulaCard n={n} key={i}/>)}</div><h2 className="wf-compare-title">후보 조향식 비교</h2><p className="wf-sub">최대 3개까지 비교할 수 있습니다.</p><button className="wf-compare-add">+ 비교할 후보 선택하기</button></section></div>;
+  const [showComparison, setShowComparison] = useState(false);
+  const [selected, setSelected] = useState([1, 2, 3]);
+  const resetComparison = () => setSelected([]);
+  const addCandidate = () => setSelected((current) => current.length < 3 ? [...current, current.length + 1] : current);
+
+  return <div className={`wf-layout wf-formula-page ${showComparison?'is-comparing':''}`}><Rail /><section className="wf-main"><h1 className="wf-title">후보 조향식 목록</h1><p className="wf-sub">상세를 확인하고 최적의 조향식을 선택하세요.</p><div className="wf-cards">{[1,2,3,1].map((n,i)=><FormulaCard n={n} key={i}/>)}</div><div className="wf-compare-heading"><div><h2 className="wf-compare-title">후보 조향식 비교</h2><p className="wf-sub">{showComparison?'선택한 후보를 동일 지표로 비교합니다.':'최대 3개까지 비교할 수 있습니다.'}</p></div>{showComparison&&<button type="button" className="wf-compare-reset" onClick={resetComparison}>비교 초기화</button>}</div>{!showComparison?<button type="button" className="wf-compare-add" onClick={()=>setShowComparison(true)}>+ 비교할 후보 선택하기</button>:<div className="wf-comparison"><div className="wf-comparison-picks">{selected.map((n,index)=><button type="button" className="wf-comparison-pick" onClick={()=>setSelected((current)=>current.filter((_,i)=>i!==index))} key={`${n}-${index}`}><span><small>Woody · Musk</small><small>Warm / Soft</small></span><b>FORMULA {String(n).padStart(2,'0')}</b><i>✓</i></button>)}<button type="button" className="wf-comparison-plus" onClick={addCandidate} aria-label="비교 후보 추가">+</button></div>{selected.length>0&&<div className="wf-comparison-table"><div className="wf-comparison-row head"><b>지표</b>{selected.map((n,i)=><b key={`${n}-${i}`}>FORMULA {String(n).padStart(2,'0')}</b>)}</div>{[['목표 일치도','92%'],['원료비 / 100ml','₩4,180'],['지속성 예측','8.6h'],['공급 리스크','중간'],['데이터 적용범위','범위 내'],['안전 게이트','통과']].map(([label,value])=><div className="wf-comparison-row" key={label}><b>{label}</b>{selected.map((_,i)=><span key={i}>{label==='데이터 적용범위'&&i===2?'부분 OOD':value}</span>)}</div>)}</div>}</div>}</section></div>;
 }
 
 export function EmptyWorkspace({ title, sub }: { title: string; sub: string }) {

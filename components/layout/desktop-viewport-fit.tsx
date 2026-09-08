@@ -19,6 +19,9 @@ export function DesktopViewportFit() {
         : 1;
 
       document.documentElement.style.setProperty('--desktop-fit-scale', String(scale));
+      document.body.style.width = pathname !== '/' && scale < 1
+        ? `${window.innerWidth / scale}px`
+        : '100%';
     };
 
     updateScale();
@@ -26,6 +29,7 @@ export function DesktopViewportFit() {
     return () => {
       window.removeEventListener('resize', updateScale);
       document.documentElement.style.removeProperty('--desktop-fit-scale');
+      document.body.style.removeProperty('width');
     };
   }, [pathname]);
 
