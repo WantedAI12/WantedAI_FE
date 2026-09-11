@@ -18,6 +18,7 @@ export function ProjectSidebar() {
   const [dataOpen, setDataOpen] = useState(true);
   const experimentView = searchParams.get('view') ?? 'safety';
   const dataView = searchParams.get('view') ?? 'raw';
+  const organizationView = searchParams.get('view') ?? 'overview';
   const isActive = (href: string) =>
     href === '/formulas'
       ? pathname.startsWith('/formulas')
@@ -143,8 +144,42 @@ export function ProjectSidebar() {
             )}
           </div>
           <Link
+            href="/organization?view=projects"
+            className={
+              pathname.startsWith('/organization') &&
+              (organizationView === 'projects' ||
+                pathname === '/organization/new-project')
+                ? 'active'
+                : ''
+            }
+          >
+            <Image src="/figma/sidebar-org.svg" alt="" width={21} height={21} />
+            <span>프로젝트 관리</span>
+          </Link>
+          <Link
+            href="/organization?view=formulas"
+            className={
+              pathname === '/organization' && organizationView === 'formulas'
+                ? 'active'
+                : ''
+            }
+          >
+            <Image
+              src="/figma/sidebar-data.svg"
+              alt=""
+              width={21}
+              height={21}
+            />
+            <span>조향식 관리</span>
+          </Link>
+          <Link
             href="/organization"
-            className={pathname === '/organization' ? 'active' : ''}
+            className={
+              pathname === '/organization' &&
+              !['projects', 'formulas'].includes(organizationView)
+                ? 'active'
+                : ''
+            }
           >
             <Image
               src="/figma/sidebar-profile.svg"
@@ -152,7 +187,7 @@ export function ProjectSidebar() {
               width={21}
               height={21}
             />
-            <span>조직관리</span>
+            <span>조직 관리</span>
           </Link>
           <Link
             href="/operations"

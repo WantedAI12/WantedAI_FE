@@ -39,6 +39,7 @@ export function ExperimentWorkspace() {
 }
 
 function SafetyDashboard() {
+  const [issuesExpanded, setIssuesExpanded] = useState(false);
   const summary = [
     ['◯', '안전 게이트 현황'],
     ['▤', '규제 준수'],
@@ -142,13 +143,32 @@ function SafetyDashboard() {
                 </li>
               </ul>
             </div>
-            <div className="wf-major-issue">
-              <h3>주요 이슈</h3>
-              <p>
-                Lorem ipsum
-                <br />
-                IFRA 기준 일부 원료 검토 필요 <button>상세보기 〉</button>
-              </p>
+            <div
+              className={`wf-major-issue ${issuesExpanded ? 'is-expanded' : ''}`}
+            >
+              <div className="wf-major-issue-head">
+                <h3>주요 이슈</h3>
+                <button
+                  type="button"
+                  aria-expanded={issuesExpanded}
+                  aria-label={
+                    issuesExpanded ? '주요 이슈 접기' : '주요 이슈 펼치기'
+                  }
+                  onClick={() => setIssuesExpanded((open) => !open)}
+                >
+                  <i
+                    className={`wf-chevron ${issuesExpanded ? 'is-up' : ''}`}
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+              {(issuesExpanded ? [1, 2, 3, 4] : [1]).map((issue) => (
+                <p key={issue}>
+                  Lorem ipsum
+                  <br />
+                  IFRA 기준 일부 원료 검토 필요
+                </p>
+              ))}
             </div>
           </section>
         </div>
@@ -186,60 +206,92 @@ function AuditHistory() {
           버전 이력
         </button>
       </div>
-      {activeTab === 'audit' ? <section className="wf-audit-log">
-        <h2>감사 로그</h2>
-        <div className="wf-filter-pills">
-          {['전체', '후보', '조향식', '데이터'].map((item) => (
-            <button key={item}>{item}</button>
-          ))}
-        </div>
-        <div className="wf-audit-scroll">
-          <div className="wf-timeline">
-            {auditEntries.map(([date, copy, user], index) => {
-              const isExpanded = expanded === index;
-              return (
-                <article className={isExpanded ? 'is-expanded' : ''} key={`${date}-${copy}`}>
-                  <time>{date}</time>
-                  <button
-                    type="button"
-                    className="wf-audit-entry"
-                    onClick={() => setExpanded(isExpanded ? null : index)}
-                    aria-expanded={isExpanded}
-                  >
-                    <span className="wf-audit-entry-summary">
-                      <b>{copy}</b>
-                      <small>{user}</small>
-                      <i className={`wf-chevron ${isExpanded ? 'is-up' : ''}`} aria-hidden="true" />
-                    </span>
-                    {isExpanded && (
-                      <span className="wf-audit-details">
-                        <span><b>변경 사유</b><em>{index === 0 ? '안전 규제 조건 자동 평가 완료' : '검토 및 변경 이력 기록'}</em></span>
-                        <span><b>변경 항목</b><em>{copy}</em></span>
-                        <span><b>모델 버전</b><em>Performance Proxy v1.8</em></span>
-                        <span><b>데이터 버전</b><em>Fragrance R&amp;D Dataset v2.4</em></span>
-                      </span>
-                    )}
-                  </button>
-                </article>
-              );
-            })}
+      {activeTab === 'audit' ? (
+        <section className="wf-audit-log">
+          <h2>감사 로그</h2>
+          <div className="wf-filter-pills">
+            {['전체', '후보', '조향식', '데이터'].map((item) => (
+              <button key={item}>{item}</button>
+            ))}
           </div>
-        </div>
-      </section> : <section className="wf-version-history">
-        <div className="wf-version-table">
-          <div className="wf-version-head"><h2>버전 이력</h2><span>생성일자</span></div>
-          {[
-            ['V1', '초기 생성', '2026.08.24'],
-            ['V2', 'Cashmeran 비율 조정', '2026.08.24'],
-            ['V3', '공급 리스크 재평가', '2026.08.25'],
-          ].map(([version, description, date]) => (
-            <div className="wf-version-row" key={version}>
-              <span><b>{version}</b><small>{description}</small></span>
-              <time>{date}</time>
+          <div className="wf-audit-scroll">
+            <div className="wf-timeline">
+              {auditEntries.map(([date, copy, user], index) => {
+                const isExpanded = expanded === index;
+                return (
+                  <article
+                    className={isExpanded ? 'is-expanded' : ''}
+                    key={`${date}-${copy}`}
+                  >
+                    <time>{date}</time>
+                    <button
+                      type="button"
+                      className="wf-audit-entry"
+                      onClick={() => setExpanded(isExpanded ? null : index)}
+                      aria-expanded={isExpanded}
+                    >
+                      <span className="wf-audit-entry-summary">
+                        <b>{copy}</b>
+                        <small>{user}</small>
+                        <i
+                          className={`wf-chevron ${isExpanded ? 'is-up' : ''}`}
+                          aria-hidden="true"
+                        />
+                      </span>
+                      {isExpanded && (
+                        <span className="wf-audit-details">
+                          <span>
+                            <b>변경 사유</b>
+                            <em>
+                              {index === 0
+                                ? '안전 규제 조건 자동 평가 완료'
+                                : '검토 및 변경 이력 기록'}
+                            </em>
+                          </span>
+                          <span>
+                            <b>변경 항목</b>
+                            <em>{copy}</em>
+                          </span>
+                          <span>
+                            <b>모델 버전</b>
+                            <em>Performance Proxy v1.8</em>
+                          </span>
+                          <span>
+                            <b>데이터 버전</b>
+                            <em>Fragrance R&amp;D Dataset v2.4</em>
+                          </span>
+                        </span>
+                      )}
+                    </button>
+                  </article>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      </section>}
+          </div>
+        </section>
+      ) : (
+        <section className="wf-version-history">
+          <div className="wf-version-table">
+            <div className="wf-version-head">
+              <h2>버전 이력</h2>
+              <span>생성일자</span>
+            </div>
+            {[
+              ['V1', '초기 생성', '2026.08.24'],
+              ['V2', 'Cashmeran 비율 조정', '2026.08.24'],
+              ['V3', '공급 리스크 재평가', '2026.08.25'],
+            ].map(([version, description, date]) => (
+              <div className="wf-version-row" key={version}>
+                <span>
+                  <b>{version}</b>
+                  <small>{description}</small>
+                </span>
+                <time>{date}</time>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }

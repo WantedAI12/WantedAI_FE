@@ -51,16 +51,22 @@ export function OrganizationWorkspace() {
 
 function OrgHeader({
   title = '조직·프로젝트 관리',
+  subtitle = '조직 구성과 팀별 역할을 확인할 수 있습니다.',
   crumb,
   backHref = '/organization',
   backToMembers = false,
   showTeamTotal = false,
+  actionLabel = '멤버 초대',
+  actionHref,
 }: {
   title?: string;
+  subtitle?: string;
   crumb?: string;
   backHref?: string;
   backToMembers?: boolean;
   showTeamTotal?: boolean;
+  actionLabel?: string;
+  actionHref?: string;
 }) {
   const router = useRouter();
   const [notice, setNotice] = useState('');
@@ -94,7 +100,7 @@ function OrgHeader({
         </p>
       )}
       <h1>{title}</h1>
-      <p>조직 구성과 팀별 역할을 확인할 수 있습니다.</p>
+      <p>{subtitle}</p>
       {showTeamTotal && (
         <div className="wf-team-total">
           총 8명　
@@ -105,9 +111,13 @@ function OrgHeader({
       )}
       <button
         type="button"
-        onClick={() => setNotice('새 프로젝트 생성 준비 완료')}
+        onClick={() =>
+          actionHref
+            ? router.push(actionHref)
+            : setNotice(`${actionLabel} 준비 완료`)
+        }
       >
-        + 새 프로젝트
+        + {actionLabel}
       </button>
       {notice && <output>{notice}</output>}
     </header>
@@ -416,40 +426,215 @@ function MemberDetail() {
 }
 
 function Projects() {
+  const [selected, setSelected] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const projectRows = Array.from({ length: 7 }, (_, index) => ({
+    name: 'CITRUS FRESH',
+    copy: '시트러스 계열 향 개발',
+    owner: '김멋사',
+    progress: index === 0 ? 49 : 34,
+  }));
+
   return (
     <>
-      <OrgHeader title="진행 중인 프로젝트" crumb="진행 중인 프로젝트" />
+      <OrgHeader
+        title="프로젝트"
+        subtitle="향료 조향 및 조향기 개발을 담당합니다."
+        actionLabel="새 프로젝트"
+        actionHref="/organization/new-project"
+      />
       <div className="wf-org-content">
-        <section className="wf-focus-card">
-          <h2>진행 중인 프로젝트</h2>
-          <p>
-            <strong>5개</strong>　이번 주 신규 2개
-          </p>
-          {projects.map(([n, c, t], i) => (
-            <div className="wf-project-row" key={i}>
-              <i />
-              <span>
-                <b>{n}</b>
-                <small>{c}</small>
-              </span>
-              <em />
-              <span>{t}</span>
-              <div>
-                <u />
-              </div>
-              <b>49%</b>
-              <time>{i === 2 ? '보류' : '마감일 2026.10.11'}</time>
+        <div className="wf-project-management">
+          <section className="wf-managed-projects">
+            <h2>진행 중인 프로젝트</h2>
+            <input placeholder="멤버 이름 또는 이메일 검색" />
+            <div className="wf-managed-project-head">
+              <span>프로젝트명</span>
+              <span>담당자</span>
+              <span>진행률</span>
+              <span>마감일</span>
             </div>
-          ))}
-        </section>
+            {projectRows.map((project, index) => (
+              <button
+                type="button"
+                className={selected === index ? 'active' : ''}
+                onClick={() => setSelected(index)}
+                key={index}
+              >
+                <span className="wf-managed-project-name">
+                  <i />
+                  <span>
+                    <b>{project.name}</b>
+                    <small>{project.copy}</small>
+                  </span>
+                </span>
+                <span className="wf-managed-owner">
+                  <i /> {project.owner}
+                </span>
+                <span className="wf-managed-progress">
+                  <i>
+                    <u style={{ width: `${project.progress}%` }} />
+                  </i>
+                  <b>49%</b>
+                </span>
+                <time>2026.10.11</time>
+              </button>
+            ))}
+            <div className="wf-managed-pagination">
+              ‹　<b>1</b>　›
+            </div>
+          </section>
+          <ProjectDetail onEdit={() => setEditing(true)} />
+        </div>
       </div>
+      {editing && <ProjectEditModal onClose={() => setEditing(false)} />}
     </>
+  );
+}
+
+function ProjectDetail({ onEdit }: { onEdit: () => void }) {
+  return (
+    <aside className="wf-project-detail">
+      <header>
+        <h2>CITRUS FRESH</h2>
+        <button type="button" onClick={onEdit}>
+          ✎ 수정
+        </button>
+        <p>2026.08.03-2026.09.30　　담당자: 김멋사</p>
+      </header>
+      <div className="wf-project-steps">
+        {['요청 완료', '후보 조향식', '후보 비교', '시험/검증'].map(
+          (step, index) => (
+            <span key={step}>
+              <i className={index < 3 ? 'done' : ''}>{index < 3 ? '✓' : ''}</i>
+              <b>{step}</b>
+              <small>08.25</small>
+            </span>
+          ),
+        )}
+      </div>
+      <div className="wf-detail-progress">
+        <i>
+          <u />
+        </i>
+        <b>49%</b>
+      </div>
+      <h3>프로젝트 정보</h3>
+      <section className="wf-project-info">
+        <p>
+          <b>프로젝트명</b>
+          <span>CITRUS FRESH</span>
+        </p>
+        <p>
+          <b>향조 키워드</b>
+          <span>Citrus Fresh clean</span>
+        </p>
+        <p>
+          <b>타겟</b>
+          <span>20대 여성</span>
+        </p>
+        <p>
+          <b>예산</b>
+          <span>4,500 / 100ml</span>
+        </p>
+        <p>
+          <b>설명</b>
+          <span>
+            시트러스 계열의 향으로
+            <br />
+            여름철 사용감이 좋은 향수
+          </span>
+        </p>
+      </section>
+      <h3>다음 일정</h3>
+      <p className="wf-next-schedule">
+        <span>안정성 시험 결과 확인</span>
+        <time>2026.09.08</time>
+      </p>
+    </aside>
+  );
+}
+
+function ProjectEditModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="wf-project-modal-backdrop">
+      <form
+        className="wf-project-modal"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onClose();
+        }}
+      >
+        <button
+          type="button"
+          className="wf-project-modal-close"
+          onClick={onClose}
+          aria-label="닫기"
+        >
+          ×
+        </button>
+        <h2>프로젝트 정보 수정</h2>
+        <div className="wf-project-modal-grid">
+          <section>
+            <h3>기본정보</h3>
+            <label>
+              프로젝트 명<input defaultValue="CITRUS FRESH" />
+            </label>
+            <label>
+              제품유형
+              <input defaultValue="향수" />
+            </label>
+            <label>
+              목표 향조
+              <input defaultValue="CITRUS FRESH" />
+            </label>
+            <label>
+              원가 상한
+              <span className="wf-cost-field">
+                <input defaultValue="4,500" />
+                <em>₩/ 100ml</em>
+              </span>
+            </label>
+          </section>
+          <section>
+            <h3>프로젝트 설명</h3>
+            <textarea aria-label="프로젝트 설명" defaultValue="" />
+          </section>
+        </div>
+        <h3 className="wf-project-progress-title">진행 사항</h3>
+        <div className="wf-project-modal-progress">
+          <label>
+            상태
+            <input defaultValue="진행 중" />
+          </label>
+          <label>
+            시작일
+            <input defaultValue="2026.09.08" />
+          </label>
+          <label>
+            마감일
+            <input defaultValue="2026.09.30" />
+          </label>
+        </div>
+        <footer>
+          <button type="button" onClick={onClose}>
+            취소
+          </button>
+          <button type="submit">확인</button>
+        </footer>
+      </form>
+    </div>
   );
 }
 function Formulas() {
   return (
     <>
-      <OrgHeader title="조향식" crumb="진행 중인 조향식" />
+      <OrgHeader
+        title="조향식"
+        crumb="진행 중인 조향식"
+        actionLabel="새 향 만들기"
+        actionHref="/requests"
+      />
       <div className="wf-org-content">
         <section className="wf-formula-list">
           <h2>진행 중인 조향식</h2>
