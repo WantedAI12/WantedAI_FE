@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
-const DESKTOP_BREAKPOINT = 901;
+const DESKTOP_BREAKPOINT = 1101;
 const DESIGN_HEIGHT = 1024;
 const UNSCALED_PATHS = new Set(['/', '/login', '/signup', '/forgot-password']);
 
