@@ -1,6 +1,9 @@
+'use client';
+
 import Link from '@/components/ui/app-link';
 import Image from 'next/image';
 import { routes } from '@/lib/routes';
+import { useState } from 'react';
 
 const menu = [
   ['후보 조향식', routes.formulas],
@@ -18,6 +21,7 @@ export function AppShell({
   children: React.ReactNode;
   currentPath?: string;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const isHome = currentPath === '/';
   const isFormulaDetail = currentPath?.startsWith('/formulas/') ?? false;
   return (
@@ -30,7 +34,18 @@ export function AppShell({
             <Link href={routes.home} className="wf-brand">
               PERFUMERY AI CORE
             </Link>
-            <nav className="wf-nav">
+            <button
+              type="button"
+              className="wf-mobile-nav-toggle"
+              aria-expanded={menuOpen}
+              aria-label="전체 메뉴 열기 또는 닫기"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <i />
+              <i />
+              <i />
+            </button>
+            <nav className={`wf-nav ${menuOpen ? 'is-open' : ''}`}>
               {menu.map(([label, href]) => (
                 <Link key={href} href={href}>
                   {label}

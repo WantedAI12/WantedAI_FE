@@ -17,6 +17,7 @@ export function ProjectSidebar() {
   const searchParams = useSearchParams();
   const [testsOpen, setTestsOpen] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const experimentView = searchParams.get('view') ?? 'safety';
   const dataView = searchParams.get('view') ?? 'raw';
   const isActive = (href: string) =>
@@ -31,7 +32,26 @@ export function ProjectSidebar() {
       <Link href="/" className="project-sidebar-brand">
         PERFUMERY AI CORE
       </Link>
-      <div className="project-sidebar-panel">
+      <button
+        type="button"
+        className="project-sidebar-toggle"
+        aria-expanded={menuOpen}
+        aria-label="사이드바 메뉴 열기 또는 닫기"
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        <i />
+        <i />
+        <i />
+      </button>
+      {menuOpen && (
+        <button
+          type="button"
+          className="project-sidebar-scrim"
+          aria-label="사이드바 메뉴 닫기"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+      <div className={`project-sidebar-panel ${menuOpen ? 'is-open' : ''}`}>
         <nav>
           {singleItems.map(([href, label, icon]) => (
             <Link
