@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { routes } from '@/lib/routes';
 import { useState } from 'react';
 
 const activities = [
@@ -42,7 +43,7 @@ export function DashboardOverview() {
           </p>
           <div className="wf-home-actions">
             <Link
-              href="/organization/new-project"
+              href={routes.newProject}
               className="wf-btn wf-btn-dark"
             >
               새 프로젝트

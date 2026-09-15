@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { ProjectSidebar } from '@/components/layout/project-sidebar';
+import { routes } from '@/lib/routes';
 
 const projects = [
   ['CITRUS FRESH', '시트러스 계열 향 개발', '조향팀'],
@@ -23,9 +24,13 @@ const formulas = [
   'Woody Amber v1.3',
 ];
 
-export function OrganizationWorkspace() {
+export function OrganizationWorkspace({
+  forcedView,
+}: {
+  forcedView?: 'overview' | 'members' | 'team' | 'projects' | 'formulas';
+} = {}) {
   const searchParams = useSearchParams();
-  const view = searchParams.get('view') ?? 'overview';
+  const view = forcedView ?? searchParams.get('view') ?? 'overview';
   const team = searchParams.get('team') ?? '조향팀';
   return (
     <div
@@ -53,7 +58,7 @@ function OrgHeader({
   title = '조직·프로젝트 관리',
   subtitle = '조직 구성과 팀별 역할을 확인할 수 있습니다.',
   crumb,
-  backHref = '/organization',
+  backHref = routes.organization,
   backToMembers = false,
   showTeamTotal = false,
   actionLabel = '멤버 초대',
@@ -80,17 +85,17 @@ function OrgHeader({
             aria-label="이전 페이지로 돌아가기"
             onClick={() =>
               router.push(
-                backToMembers ? '/organization?view=members' : backHref,
+                backToMembers ? routes.organizationMembers : backHref,
               )
             }
           >
             ←
           </button>
-          <Link href="/organization">조직·프로젝트 관리</Link>
+          <Link href={routes.organization}>조직·프로젝트 관리</Link>
           <span>›</span>
           {backHref.includes('view=members') ? (
             <>
-              <Link href="/organization?view=members">전체 멤버</Link>
+              <Link href={routes.organizationMembers}>전체 멤버</Link>
               <span>›</span>
               <span>{title}</span>
             </>
@@ -109,16 +114,18 @@ function OrgHeader({
           </span>
         </div>
       )}
-      <button
-        type="button"
-        onClick={() =>
-          actionHref
-            ? router.push(actionHref)
-            : setNotice(`${actionLabel} 준비 완료`)
-        }
-      >
-        + {actionLabel}
-      </button>
+      {actionHref ? (
+        <Link className="wf-org-action" href={actionHref}>
+          + {actionLabel}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setNotice(`${actionLabel} 준비 완료`)}
+        >
+          + {actionLabel}
+        </button>
+      )}
       {notice && <output>{notice}</output>}
     </header>
   );
@@ -134,7 +141,7 @@ function Overview({ expanded }: { expanded: boolean }) {
       <OrgHeader />
       <div className="wf-org-content">
         <div className="wf-org-summary">
-          <Link href="/organization?view=members">
+          <Link href={routes.organizationMembers}>
             <b>●　전체 멤버</b>
             <strong>24명</strong>
             <span className="wf-people">
@@ -142,13 +149,13 @@ function Overview({ expanded }: { expanded: boolean }) {
             </span>
             <i>›</i>
           </Link>
-          <Link href="/organization?view=projects">
+          <Link href={routes.projects}>
             <b>▣　진행 중인 프로젝트</b>
             <strong>5개</strong>
             <span>이번 주 신규 2개</span>
             <i>›</i>
           </Link>
-          <Link href="/organization?view=formulas">
+          <Link href={routes.formulaManagement}>
             <b>◉　진행 중인 조향식</b>
             <strong>8개</strong>
             <span>검토대기 3개</span>
@@ -327,7 +334,7 @@ function Team({ name }: { name: string }) {
       <OrgHeader
         title={name}
         crumb={`전체 멤버　›　${name}`}
-        backHref="/organization?view=members"
+        backHref={routes.organizationMembers}
         backToMembers
         showTeamTotal
       />
@@ -441,7 +448,7 @@ function Projects() {
         title="프로젝트"
         subtitle="향료 조향 및 조향기 개발을 담당합니다."
         actionLabel="새 프로젝트"
-        actionHref="/organization/new-project"
+        actionHref={routes.newProject}
       />
       <div className="wf-org-content">
         <div className="wf-project-management">
@@ -633,7 +640,7 @@ function Formulas() {
         title="조향식"
         crumb="진행 중인 조향식"
         actionLabel="새 향 만들기"
-        actionHref="/requests"
+        actionHref={routes.request}
       />
       <div className="wf-org-content">
         <section className="wf-formula-list">

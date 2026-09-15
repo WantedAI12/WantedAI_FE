@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { ProjectSidebar } from '@/components/layout/project-sidebar';
+import { routes } from '@/lib/routes';
 
 const checklist = [
   '향 콘셉트 정의',
@@ -26,7 +27,7 @@ export function NewProjectWorkspace() {
         <button
           type="button"
           className="wf-new-project-back"
-          onClick={() => router.push('/organization?view=projects')}
+          onClick={() => router.push(routes.projects)}
           aria-label="프로젝트 관리로 돌아가기"
         >
           ‹

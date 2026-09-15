@@ -4,11 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { routes } from '@/lib/routes';
 
 const singleItems = [
-  ['/', '프로젝트 홈', 'sidebar-home.svg'],
-  ['/requests', '향 요청', 'sidebar-request.svg'],
-  ['/formulas', '후보 조향식', 'sidebar-data.svg'],
+  [routes.home, '프로젝트 홈', 'sidebar-home.svg'],
+  [routes.request, '향 요청', 'sidebar-request.svg'],
+  [routes.formulas, '후보 조향식', 'sidebar-data.svg'],
 ] as const;
 
 export function ProjectSidebar() {
@@ -18,7 +19,6 @@ export function ProjectSidebar() {
   const [dataOpen, setDataOpen] = useState(true);
   const experimentView = searchParams.get('view') ?? 'safety';
   const dataView = searchParams.get('view') ?? 'raw';
-  const organizationView = searchParams.get('view') ?? 'overview';
   const isActive = (href: string) =>
     href === '/formulas'
       ? pathname.startsWith('/formulas')
@@ -144,25 +144,15 @@ export function ProjectSidebar() {
             )}
           </div>
           <Link
-            href="/organization?view=projects"
-            className={
-              pathname.startsWith('/organization') &&
-              (organizationView === 'projects' ||
-                pathname === '/organization/new-project')
-                ? 'active'
-                : ''
-            }
+            href={routes.projects}
+            className={pathname.startsWith(routes.projects) ? 'active' : ''}
           >
             <Image src="/figma/sidebar-org.svg" alt="" width={21} height={21} />
             <span>프로젝트 관리</span>
           </Link>
           <Link
-            href="/organization?view=formulas"
-            className={
-              pathname === '/organization' && organizationView === 'formulas'
-                ? 'active'
-                : ''
-            }
+            href={routes.formulaManagement}
+            className={pathname === routes.formulaManagement ? 'active' : ''}
           >
             <Image
               src="/figma/sidebar-data.svg"
@@ -173,13 +163,8 @@ export function ProjectSidebar() {
             <span>조향식 관리</span>
           </Link>
           <Link
-            href="/organization"
-            className={
-              pathname === '/organization' &&
-              !['projects', 'formulas'].includes(organizationView)
-                ? 'active'
-                : ''
-            }
+            href={routes.organization}
+            className={pathname.startsWith(routes.organization) ? 'active' : ''}
           >
             <Image
               src="/figma/sidebar-profile.svg"
