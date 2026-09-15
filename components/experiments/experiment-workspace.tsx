@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ProjectSidebar } from '@/components/layout/project-sidebar';
 
 const auditEntries = [
@@ -111,14 +111,32 @@ function SafetyDashboard() {
               <span>FDA</span>
               <span>규제 상태</span>
             </div>
-            {['02', '03', '04', '05', '06', '07'].map((n) => (
-              <div className="wf-compliance-row" key={n}>
-                <span>FORMULA {n}</span>
-                <span />
-                <span />
-                <span />
-                <span />
-                <b>통과</b>
+            {[
+              ['02', ['pass', 'pass', 'pass', 'pass'], '통과'],
+              ['03', ['pass', 'pass', 'review', 'pass'], '검토필요'],
+              ['04', ['pass', 'pass', 'pass', 'pass'], '통과'],
+              ['05', ['pass', 'pass', 'review', 'blocked'], '검토필요'],
+              ['06', ['empty', 'empty', 'empty', 'empty'], '미확인'],
+              ['07', ['pass', 'pass', 'pass', 'pass'], '통과'],
+            ].map(([n, checks, status]) => (
+              <div className="wf-compliance-row" key={n as string}>
+                <span>FORMULA {n as string}</span>
+                {(checks as string[]).map((check, index) => (
+                  <span
+                    className={`wf-compliance-dot is-${check}`}
+                    aria-label={
+                      check === 'pass'
+                        ? '통과'
+                        : check === 'review'
+                          ? '검토 필요'
+                          : check === 'blocked'
+                            ? '차단'
+                            : '미확인'
+                    }
+                    key={`${String(n)}-${index}`}
+                  />
+                ))}
+                <b>{status as string}</b>
               </div>
             ))}
           </section>
@@ -180,6 +198,60 @@ function SafetyDashboard() {
 function AuditHistory() {
   const [expanded, setExpanded] = useState<number | null>(0);
   const [activeTab, setActiveTab] = useState<'audit' | 'versions'>('audit');
+  const [downloadOpen, setDownloadOpen] = useState(false);
+  const [fileType, setFileType] = useState<'pdf' | 'json'>('pdf');
+
+  useEffect(() => {
+    if (!downloadOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDownloadOpen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [downloadOpen]);
+
+  function downloadReport() {
+    const report = {
+      target: 'FORMULA 01',
+      version: 'V3',
+      scope: '전체 감사 이력',
+      generatedAt: new Date().toISOString(),
+      entries: auditEntries.map(([date, description, user]) => ({
+        date,
+        description,
+        user,
+      })),
+    };
+    const isJson = fileType === 'json';
+    const contents = isJson
+      ? JSON.stringify(report, null, 2)
+      : [
+          'PERFUMERY AI CORE — AUDIT REPORT',
+          '',
+          `Target: ${report.target}`,
+          `Version: ${report.version}`,
+          `Scope: Full audit history`,
+          '',
+          ...report.entries.map(
+            (entry) =>
+              `${entry.date} | ${entry.description} | ${entry.user}`,
+          ),
+        ].join('\n');
+    const blob = new Blob([contents], {
+      type: isJson ? 'application/json' : 'application/pdf',
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `FORMULA-01-V3-audit.${fileType}`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setDownloadOpen(false);
+  }
   return (
     <>
       <header className="wf-audit-header">
@@ -188,7 +260,9 @@ function AuditHistory() {
           <i className="wf-chevron" aria-hidden="true" />
         </h1>
         <p>후보 FORMULA 01 의 생성부터 승인까지 전체 이력입니다.</p>
-        <button>보고서 다운로드</button>
+        <button type="button" onClick={() => setDownloadOpen(true)}>
+          보고서 다운로드
+        </button>
       </header>
       <div className="wf-audit-tabs">
         <button
@@ -291,6 +365,66 @@ function AuditHistory() {
             ))}
           </div>
         </section>
+      )}
+      {downloadOpen && (
+        <div
+          className="wf-download-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) setDownloadOpen(false);
+          }}
+        >
+          <dialog
+            open
+            className="wf-download-modal"
+            aria-labelledby="download-modal-title"
+          >
+            <h2 id="download-modal-title">다운로드</h2>
+            <div className="wf-download-fields">
+              <label>
+                <span>다운로드 대상</span>
+                <input value="FORMULA 01" readOnly />
+              </label>
+              <label>
+                <span>버전</span>
+                <input value="V3" readOnly />
+              </label>
+              <label>
+                <span>범위</span>
+                <input value="전체 감사 이력" readOnly />
+              </label>
+              <fieldset>
+                <legend>파일형식</legend>
+                <label>
+                  <input
+                    type="radio"
+                    name="audit-file-type"
+                    checked={fileType === 'pdf'}
+                    onChange={() => setFileType('pdf')}
+                  />
+                  <span>PDF</span>
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="audit-file-type"
+                    checked={fileType === 'json'}
+                    onChange={() => setFileType('json')}
+                  />
+                  <span>JSON</span>
+                </label>
+              </fieldset>
+            </div>
+            <footer>
+              <button type="button" onClick={() => setDownloadOpen(false)}>
+                취소
+              </button>
+              <button type="button" onClick={downloadReport}>
+                다운로드
+              </button>
+            </footer>
+          </dialog>
+        </div>
       )}
     </>
   );

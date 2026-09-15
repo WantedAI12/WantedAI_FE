@@ -85,22 +85,22 @@ function Performance() {
   const series = [
     {
       name: 'Citrus',
-      color: '#858585',
+      color: '#caa56e',
       points: '20,100 145,42 390,64 625,82 885,122',
     },
     {
       name: 'Woody',
-      color: '#969696',
+      color: '#7f594c',
       points: '20,112 145,78 390,58 625,76 885,94',
     },
     {
       name: 'Amber',
-      color: '#000',
+      color: '#391a14',
       points: '20,150 145,132 390,148 625,146 885,164',
     },
     {
       name: 'Musk',
-      color: '#d9d9d9',
+      color: '#cfc8bd',
       points: '20,180 145,180 390,180 625,180 885,180',
     },
   ];
@@ -198,20 +198,23 @@ function Performance() {
 
 function Safety() {
   const rows = [
-    ['사용 제품', '바디 로션'],
-    ['사용 농도', '10%'],
-    ['안전성', '검토 조건 충족'],
-    ['원료 제한', '제한 원료 없음'],
-    ['공급 리스크', '주요 원료 공급 가능'],
-    ['원가', '목표 범위 내'],
-  ];
+    ['사용 제품', '바디 로션', 'pass'],
+    ['사용 농도', '10%', 'pass'],
+    ['안전성', '검토 필요', 'review'],
+    ['원료 제한', '제한 원료 없음', 'pass'],
+    ['공급 리스크', '주요 원료 공급 가능', 'pass'],
+    ['원가', '누락', 'missing'],
+  ] as const;
   return (
     <div className="wf-safety-layout">
       <div className="wf-safety-card">
-        {rows.map(([label, value]) => (
+        {rows.map(([label, value, status]) => (
           <div key={label}>
             <span>{label}</span>
-            <b>{value}</b>
+            <b className={`wf-safety-value is-${status}`}>
+              <i aria-hidden="true" />
+              {value}
+            </b>
           </div>
         ))}
       </div>
@@ -235,7 +238,7 @@ function Evidence() {
   return (
     <div>
       <div className="wf-evidence">
-        <div>
+        <div className="wf-evidence-metric">
           <h2>원료 데이터</h2>
           <strong>48</strong>
           <span>사용 가능 원료</span>
@@ -245,7 +248,7 @@ function Evidence() {
             <small>향조 · 휘발성 · 사용 제한 · 공급 정보</small>
           </p>
         </div>
-        <div>
+        <div className="wf-evidence-metric">
           <h2>조향식 데이터</h2>
           <strong>126</strong>
           <span>유사 조향식</span>
@@ -297,12 +300,13 @@ function Memo() {
           '입력 내용',
           '우디 머스크 계열의 부드러운 첫인상.\n시트러스는 가볍게 스치는 정도로만.\n24시간 착용 기준 8시간 이상 지속되며,\n민감성 피부를 고려해 알러젠은 최소화.\n100ml 원료비 4,500원 이하.',
         ],
-        ['검토 사항', ''],
-        ['다음 실험', ''],
-      ].map(([title, body]) => (
-        <article key={title}>
+        ['검토 사항', '안전성 검토 결과와 원료 공급 가능 여부를 확인해 주세요.\n알러젠 최소화 조건을 우선 검토합니다.'],
+        ['다음 실험', '시트러스 비율을 낮춘 샘플과 우디 노트를 강화한 샘플을 비교합니다.'],
+      ].map(([title, body], index) => (
+        <article className={index === 0 ? 'is-primary' : ''} key={title}>
           <b>{title}</b>
           <p>{body}</p>
+          <span className="wf-memo-meta">2026. 09.04&nbsp;&nbsp; 김멋사</span>
         </article>
       ))}
     </div>

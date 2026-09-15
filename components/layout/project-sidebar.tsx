@@ -15,8 +15,8 @@ const singleItems = [
 export function ProjectSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [testsOpen, setTestsOpen] = useState(true);
-  const [dataOpen, setDataOpen] = useState(true);
+  const [testsOpen, setTestsOpen] = useState(false);
+  const [dataOpen, setDataOpen] = useState(false);
   const experimentView = searchParams.get('view') ?? 'safety';
   const dataView = searchParams.get('view') ?? 'raw';
   const isActive = (href: string) =>
@@ -119,16 +119,6 @@ export function ProjectSidebar() {
                   href="/ingredients?view=sensory"
                 >
                   관능 검증 관리
-                </Link>
-                <Link
-                  className={
-                    pathname === '/ingredients' && dataView === 'impact'
-                      ? 'active-child'
-                      : ''
-                  }
-                  href="/ingredients?view=impact"
-                >
-                  변경 영향 분석
                 </Link>
                 <Link
                   className={

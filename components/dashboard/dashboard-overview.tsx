@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { routes } from '@/lib/routes';
 import { useState } from 'react';
 
@@ -31,7 +32,7 @@ export function DashboardOverview() {
       <section className="wf-home-hero">
         <div className="wf-home-inner">
           <h1 className="wf-home-title">
-            <span>Design</span>
+            <Image className="wf-home-script" src="/figma/home-script-logo.svg" alt="Design" width={354} height={109} priority />
             Scents.
             <br />
             With Intelligence.
@@ -137,7 +138,7 @@ function HomePanel({
           <i className={`wf-chevron ${open ? 'is-up' : ''}`} />
         </button>
       </header>
-      {open && children}
+      <div className="wf-home-panel-content">{children}</div>
     </section>
   );
 }

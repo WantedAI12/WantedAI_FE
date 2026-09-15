@@ -75,7 +75,9 @@ function OrgHeader({
 }) {
   const router = useRouter();
   const [notice, setNotice] = useState('');
+  const [inviteOpen, setInviteOpen] = useState(false);
   return (
+    <>
     <header className="wf-org-header">
       {crumb && (
         <p className="wf-org-crumb">
@@ -121,13 +123,81 @@ function OrgHeader({
       ) : (
         <button
           type="button"
-          onClick={() => setNotice(`${actionLabel} 준비 완료`)}
+          onClick={() => setInviteOpen(true)}
         >
           + {actionLabel}
         </button>
       )}
       {notice && <output>{notice}</output>}
     </header>
+    {inviteOpen && (
+      <div
+        className="wf-invite-backdrop"
+        role="presentation"
+        onMouseDown={(event) => {
+          if (event.currentTarget === event.target) setInviteOpen(false);
+        }}
+      >
+        <form
+          className="wf-invite-modal"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            const emailEntry = data.get('email');
+            const email = typeof emailEntry === 'string' ? emailEntry : '';
+            setNotice(`${email} 초대 준비 완료`);
+            setInviteOpen(false);
+          }}
+        >
+          <button
+            type="button"
+            className="wf-invite-close"
+            onClick={() => setInviteOpen(false)}
+            aria-label="닫기"
+          >
+            ×
+          </button>
+          <h2>멤버 초대</h2>
+          <p>이메일을 입력하여 팀원을 초대할 수 있습니다.</p>
+          <label>
+            <span>이메일 주소</span>
+            <input
+              name="email"
+              type="email"
+              placeholder="이메일 주소를 입력해주세요."
+              required
+            />
+          </label>
+          <label>
+            <span>역할 선택</span>
+            <select name="role" defaultValue="">
+              <option value="" disabled>역할을 선택해주세요.</option>
+              <option>관리자</option>
+              <option>조향사</option>
+              <option>검토자</option>
+              <option>팀원</option>
+            </select>
+          </label>
+          <label>
+            <span>초대메시지 (선택)</span>
+            <textarea
+              name="message"
+              placeholder="초대 메시지를 입력해주세요 (선택사항)"
+            />
+          </label>
+          <div className="wf-invite-note">
+            초대 후 상대방이 초대를 수락하면 조직에 자동으로 추가됩니다.
+          </div>
+          <footer>
+            <button type="button" onClick={() => setInviteOpen(false)}>
+              취소
+            </button>
+            <button type="submit">초대하기</button>
+          </footer>
+        </form>
+      </div>
+    )}
+    </>
   );
 }
 
@@ -563,8 +633,18 @@ function ProjectDetail({ onEdit }: { onEdit: () => void }) {
 }
 
 function ProjectEditModal({ onClose }: { onClose: () => void }) {
+  const [imagePreview, setImagePreview] = useState(
+    '/figma/project-detail-fruit.png',
+  );
+
   return (
-    <div className="wf-project-modal-backdrop">
+    <div
+      className="wf-project-modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target) onClose();
+      }}
+    >
       <form
         className="wf-project-modal"
         onSubmit={(event) => {
@@ -603,9 +683,35 @@ function ProjectEditModal({ onClose }: { onClose: () => void }) {
               </span>
             </label>
           </section>
-          <section>
-            <h3>프로젝트 설명</h3>
-            <textarea aria-label="프로젝트 설명" defaultValue="" />
+          <section className="wf-project-modal-side">
+            <h3>사진 설정</h3>
+            <label
+              className="wf-project-image-upload"
+              style={{ backgroundImage: `url(${imagePreview})` }}
+            >
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.addEventListener('load', () => {
+                    if (typeof reader.result === 'string') {
+                      setImagePreview(reader.result);
+                    }
+                  });
+                  reader.readAsDataURL(file);
+                }}
+              />
+              <span aria-hidden="true">▧</span>
+              <b className="sr-only">프로젝트 사진 변경</b>
+            </label>
+            <h3>프로젝트 설정</h3>
+            <textarea
+              aria-label="프로젝트 설정"
+              defaultValue="시트러스 계열의 향으로 여름철 사용감이 좋은 향수"
+            />
           </section>
         </div>
         <h3 className="wf-project-progress-title">진행 사항</h3>
