@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/ui/app-link';
 import { authApi } from '@/lib/api/resources';
 import { ApiError } from '@/lib/api/client';
 
