@@ -3,6 +3,9 @@ import { endpoints } from '@/lib/api/endpoints';
 import type {
   ApprovalGateResponse,
   CandidateCompareRow,
+  CandidateMemoResponse,
+  CandidateMemoType,
+  CandidateRevisionPreview,
   CandidateResponse,
   CandidateVersionResponse,
   CatalogSyncResponse,
@@ -15,11 +18,14 @@ import type {
   IngredientResponse,
   IngredientDetailResponse,
   JobResponse,
+  HubSummaryResponse,
   LoginRequest,
   MemberResponse,
+  PageResponse,
   PredictionResponse,
   PredictionUncertaintyResponse,
   ProjectCreate,
+  ProjectUpdate,
   ProjectMemberResponse,
   ProjectResponse,
   Role,
@@ -33,6 +39,8 @@ import type {
   SupplyChangeType,
   SupplyReviewDecisionResponse,
   TokenResponse,
+  WorkChecklistItemResponse,
+  WorkChecklistItemType,
 } from '@/types/domain';
 
 const json = (body: unknown): RequestInit => ({
@@ -44,6 +52,10 @@ const patch = (body: unknown): RequestInit => ({
   body: JSON.stringify(body),
 });
 
+export const hubApi = {
+  summary: () => apiRequest<HubSummaryResponse>(endpoints.hub),
+};
+
 export const authApi = {
   async login(body: LoginRequest, remember = false) {
     const tokens = await apiRequest<TokenResponse>(
@@ -54,8 +66,19 @@ export const authApi = {
     tokenStorage.set(tokens, remember);
     return tokens;
   },
+  async guestLogin() {
+    const tokens = await apiRequest<TokenResponse>(
+      endpoints.auth.guest,
+      { method: 'POST' },
+      false,
+    );
+    tokenStorage.set(tokens, true);
+    return tokens;
+  },
   signup: (body: SignupRequest) =>
     apiRequest<MemberResponse>(endpoints.auth.signup, json(body), false),
+  forgotPassword: (email: string) =>
+    apiRequest<void>(endpoints.auth.forgotPassword, json({ email }), false),
   async refresh() {
     const refreshToken = tokenStorage.getRefreshToken();
     if (!refreshToken) return null;
@@ -64,7 +87,7 @@ export const authApi = {
       json({ refreshToken }),
       false,
     );
-    tokenStorage.set(tokens);
+    tokenStorage.set(tokens, tokenStorage.isPersistent());
     return tokens;
   },
   async logout() {
@@ -96,7 +119,7 @@ export const projectApi = {
   create: (body: ProjectCreate) =>
     apiRequest<ProjectResponse>(endpoints.projects, json(body)),
   detail: (id: number) => apiRequest<ProjectResponse>(endpoints.project(id)),
-  update: (id: number, body: Partial<ProjectCreate>) =>
+  update: (id: number, body: ProjectUpdate) =>
     apiRequest<ProjectResponse>(endpoints.project(id), patch(body)),
   members: (id: number) =>
     apiRequest<ProjectMemberResponse[]>(endpoints.projectMembers(id)),
@@ -125,7 +148,7 @@ export const jobApi = {
 };
 export const requestApi = {
   list: (projectId: number, status?: string) =>
-    apiRequest<FragranceRequestResponse[]>(
+    apiRequest<PageResponse<FragranceRequestResponse>>(
       `${endpoints.projectRequests(projectId)}${status ? `?status=${encodeURIComponent(status)}` : ''}`,
     ),
   create: (projectId: number, body: FragranceRequestCreate) =>
@@ -144,6 +167,13 @@ export const requestApi = {
     apiRequest<FragranceRequestResponse>(endpoints.requestConfirm(id), {
       method: 'POST',
     }),
+  checklist: (id: number) =>
+    apiRequest<WorkChecklistItemResponse[]>(endpoints.requestChecklist(id)),
+  setChecklistCompleted: (id: number, itemType: WorkChecklistItemType, completed: boolean, expectedRevision: number) =>
+    apiRequest<WorkChecklistItemResponse>(
+      endpoints.requestChecklistItem(id, itemType),
+      patch({ completed, expectedRevision }),
+    ),
 };
 export const candidateApi = {
   generate: (requestId: number) =>
@@ -158,6 +188,13 @@ export const candidateApi = {
     ),
   detail: (id: number) =>
     apiRequest<CandidateResponse>(endpoints.candidate(id)),
+  duplicate: (id: number, reason: string) =>
+    apiRequest<CandidateResponse>(endpoints.candidateDuplicate(id), json({ reason })),
+  memos: (id: number) => apiRequest<CandidateMemoResponse[]>(endpoints.candidateMemos(id)),
+  saveMemo: (id: number, memoType: CandidateMemoType, content: string, expectedRevision: number) =>
+    apiRequest<CandidateMemoResponse>(endpoints.candidateMemo(id, memoType), { method: 'PUT', body: JSON.stringify({ content, expectedRevision }) }),
+  previewRevision: (id: number, instruction: string) =>
+    apiRequest<CandidateRevisionPreview>(endpoints.candidateRevise(id), json({ instruction })),
   versions: (id: number) =>
     apiRequest<CandidateVersionResponse[]>(endpoints.candidateVersions(id)),
   version: (id: number) =>
@@ -206,8 +243,9 @@ export const evidenceApi = {
     apiRequest<EvidenceReportResponse>(endpoints.evidenceReport(id)),
 };
 export const ingredientApi = {
-  list: (query?: string, pyramid?: string) => {
+  list: (projectId: number, query?: string, pyramid?: string) => {
     const search = new URLSearchParams({
+        projectId: String(projectId),
         ...(query ? { query } : {}),
         ...(pyramid ? { pyramid } : {}),
       }).toString();
@@ -215,8 +253,8 @@ export const ingredientApi = {
       `${endpoints.ingredients}${search ? `?${search}` : ''}`,
     );
   },
-  detail: (id: string) =>
-    apiRequest<IngredientDetailResponse>(endpoints.ingredient(id)),
+  detail: (projectId: number, id: string) =>
+    apiRequest<IngredientDetailResponse>(`${endpoints.ingredient(id)}?projectId=${projectId}`),
   sync: (projectId: number) =>
     apiRequest<JobResponse>(endpoints.catalogSync, json({ projectId })),
   syncStatus: (jobId: number) =>

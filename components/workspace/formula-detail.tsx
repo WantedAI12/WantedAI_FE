@@ -2,512 +2,132 @@
 
 import Image from 'next/image';
 import Link from '@/components/ui/app-link';
-import { useState } from 'react';
-import { experimentApi } from '@/lib/api/resources';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { candidateApi, evidenceApi, experimentApi, predictionApi, requestApi, safetyApi } from '@/lib/api/resources';
+import type { CandidateMemoResponse, CandidateMemoType, CandidateResponse, EvidenceLog, FragranceRequestResponse, PredictionResponse, SafetyEvaluationResponse } from '@/types/domain';
 
-const tabs = [
-  '조향식 구성',
-  '성능 프록시',
-  '안전 / 규제',
-  '근거&데이터',
-  '메모',
-] as const;
+const tabs = ['조향식 구성', '성능 프록시', '안전 / 규제', '근거&데이터', '메모'] as const;
 type Tab = (typeof tabs)[number];
-
-function Composition() {
-  const rows = [
-    ['Cashmeran', 18.2],
-    ['Ethylene Brassylate', 14.5],
-    ['Iso E Super', 11],
-    ['Bergamot FCF', 6.4],
-    ['기타 22종', 49.9],
-  ] as const;
-  return (
-    <div className="wf-formula-cols">
-      <div>
-        <h2 className="wf-panel-title">향료 원액 배합비</h2>
-        <div className="wf-mix-card">
-          <div className="wf-bars">
-            {rows.map(([name, width]) => (
-              <div className="wf-bar-row" key={name}>
-                <span>{name}</span>
-                <div className="wf-bar-track">
-                  <div
-                    className="wf-bar-fill"
-                    style={{ width: `${width * 1.86}%` }}
-                  />
-                </div>
-                <span>{width.toFixed(1)}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <section className="wf-product-content">
-          <h2 className="wf-panel-title">완제품 함량</h2>
-          {[
-            ['적용 농도', '10%'],
-            ['배치 기준', '100kg'],
-            ['향료 함량', '10kg'],
-            ['기타 원료', '90kg'],
-          ].map(([label, value], index) => (
-            <div className={index === 2 ? 'is-highlighted' : ''} key={label}>
-              <span>
-                {label}
-                {index === 3 && <i className="wf-chevron" aria-hidden="true" />}
-              </span>
-              <b>{value}</b>
-            </div>
-          ))}
-        </section>
-      </div>
-      <div>
-        <h2 className="wf-panel-title">조향식 정보</h2>
-        <div className="wf-info-card">
-          {[
-            ['목표 일치도', '96%'],
-            ['예상 원가', '₩4,180 / 100ml'],
-            ['사용 농도', '0.2~0.5%'],
-            ['제품 유형', '바디로션'],
-            ['지속성 예측', '8.6h'],
-          ].map(([label, value]) => (
-            <div className="wf-info-row" key={label}>
-              <span>{label}</span>
-              <b>{value}</b>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Performance() {
-  const series = [
-    {
-      name: 'Citrus',
-      color: '#caa56e',
-      points: '20,100 145,42 390,64 625,82 885,122',
-    },
-    {
-      name: 'Woody',
-      color: '#7f594c',
-      points: '20,112 145,78 390,58 625,76 885,94',
-    },
-    {
-      name: 'Amber',
-      color: '#391a14',
-      points: '20,150 145,132 390,148 625,146 885,164',
-    },
-    {
-      name: 'Musk',
-      color: '#cfc8bd',
-      points: '20,180 145,180 390,180 625,180 885,180',
-    },
-  ];
-  return (
-    <div className="wf-performance">
-      <h2 className="wf-panel-title">시간에 따른 향 변화</h2>
-      <div className="wf-performance-chart">
-        <svg viewBox="0 0 930 220" aria-labelledby="performance-chart-title">
-          <title id="performance-chart-title">
-            시간에 따른 Citrus, Woody, Amber, Musk 향 변화 그래프
-          </title>
-          <line x1="20" y1="20" x2="20" y2="180" />
-          <line x1="20" y1="180" x2="900" y2="180" />
-          <line className="grid-line" x1="20" y1="100" x2="900" y2="100" />
-          <text x="-2" y="24">
-            100
-          </text>
-          <text x="4" y="104">
-            50
-          </text>
-          <text x="9" y="184">
-            0
-          </text>
-          {series.map((item) => (
-            <g key={item.name} style={{ color: item.color }}>
-              <polyline points={item.points} />
-              {item.points
-                .split(' ')
-                .slice(1)
-                .map((point, index) => {
-                  const [cx, cy] = point.split(',');
-                  return <circle key={index} cx={cx} cy={cy} r="7" />;
-                })}
-            </g>
-          ))}
-          {[
-            ['0h', 20],
-            ['1h', 145],
-            ['4h', 390],
-            ['8h', 625],
-            ['12h', 885],
-          ].map(([label, x]) => (
-            <text
-              className="time-label"
-              key={label}
-              x={x}
-              y="211"
-              textAnchor="middle"
-            >
-              {label}
-            </text>
-          ))}
-        </svg>
-        <div className="wf-chart-legend">
-          {series.map((item) => (
-            <span key={item.name}>
-              <i style={{ background: item.color }} />
-              {item.name}
-            </span>
-          ))}
-        </div>
-      </div>
-      <div className="wf-performance-cards">
-        <div className="wf-performance-summary">
-          <span>사용 농도</span>
-          <b>10%</b>
-          <span>지속성 예측</span>
-          <b>약 8 h</b>
-          <span>예측 상태</span>
-          <b>적용 범위 내</b>
-        </div>
-        <div className="wf-scent-ratios">
-          {[
-            ['Citrus', '22%'],
-            ['Woody', '38%'],
-            ['Amber', '26%'],
-            ['Musk', '14%'],
-          ].map(([label, value]) => (
-            <div key={label}>
-              <span>{label}</span>
-              <b>{value}</b>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="wf-calculation-note">
-        <b>ⓘ&nbsp; 계산조건</b>
-        <span>적용 농도 10%</span>
-        <span>베이스 : 바디로션</span>
-        <span>사용조건: 해당 조건 기준</span>
-      </div>
-    </div>
-  );
-}
-
-function Safety() {
-  const rows = [
-    ['사용 제품', '바디 로션', 'pass'],
-    ['사용 농도', '10%', 'pass'],
-    ['안전성', '검토 필요', 'review'],
-    ['원료 제한', '제한 원료 없음', 'pass'],
-    ['공급 리스크', '주요 원료 공급 가능', 'pass'],
-    ['원가', '누락', 'missing'],
-  ] as const;
-  return (
-    <div className="wf-safety-layout">
-      <div className="wf-safety-card">
-        {rows.map(([label, value, status]) => (
-          <div key={label}>
-            <span>{label}</span>
-            <b className={`wf-safety-value is-${status}`}>
-              <i aria-hidden="true" />
-              {value}
-            </b>
-          </div>
-        ))}
-      </div>
-      <div className="wf-safety-copy">
-        <h2>SAFE TO REVIEW</h2>
-        <p>
-          현재 등록된 원료·제품 조건을 기준으로
-          <br />
-          필수 안전·규제 검토 조건을 충족했습니다.
-        </p>
-        <small>
-          ※ 최종 제품 적용 전 제품별 안전성 및<br />
-          최신 규제 기준에 대한 별도 검토가 필요합니다.
-        </small>
-      </div>
-    </div>
-  );
-}
-
-function Evidence() {
-  return (
-    <div>
-      <div className="wf-evidence">
-        <div className="wf-evidence-metric">
-          <h2>원료 데이터</h2>
-          <strong>48</strong>
-          <span>사용 가능 원료</span>
-          <p>
-            원료 특성
-            <br />
-            <small>향조 · 휘발성 · 사용 제한 · 공급 정보</small>
-          </p>
-        </div>
-        <div className="wf-evidence-metric">
-          <h2>조향식 데이터</h2>
-          <strong>126</strong>
-          <span>유사 조향식</span>
-          <p>
-            Woody · Musk 계열
-            <br />
-            <small>바디로션 적용 데이터 포함</small>
-          </p>
-        </div>
-      </div>
-      <div className="wf-evidence-strip">
-        <div>
-          <span>데이터 적용범위</span>
-          <b>IN-DOMAIN</b>
-        </div>
-        <div>
-          <span>불확실성</span>
-          <b>LOW–MEDIUM</b>
-        </div>
-        <div>
-          <span>OOD</span>
-          <b>NOT DETECTED</b>
-        </div>
-        <small>
-          Dataset
-          <br />
-          Fragrance R&amp;D Dataset v2.4
-        </small>
-        <small>
-          Updated
-          <br />
-          2026.08.30
-        </small>
-        <small>
-          Model
-          <br />
-          Performance Proxy v1.8
-        </small>
-      </div>
-    </div>
-  );
-}
-
-function Memo() {
-  return (
-    <div className="wf-memos">
-      {[
-        [
-          '입력 내용',
-          '우디 머스크 계열의 부드러운 첫인상.\n시트러스는 가볍게 스치는 정도로만.\n24시간 착용 기준 8시간 이상 지속되며,\n민감성 피부를 고려해 알러젠은 최소화.\n100ml 원료비 4,500원 이하.',
-        ],
-        ['검토 사항', '안전성 검토 결과와 원료 공급 가능 여부를 확인해 주세요.\n알러젠 최소화 조건을 우선 검토합니다.'],
-        ['다음 실험', '시트러스 비율을 낮춘 샘플과 우디 노트를 강화한 샘플을 비교합니다.'],
-      ].map(([title, body], index) => (
-        <article className={index === 0 ? 'is-primary' : ''} key={title}>
-          <b>{title}</b>
-          <p>{body}</p>
-          <span className="wf-memo-meta">2026. 09.04&nbsp;&nbsp; 김멋사</span>
-        </article>
-      ))}
-    </div>
-  );
-}
+const display = (value: string | number | boolean | null | undefined) => value === null || value === undefined || value === '' ? '정보 없음' : String(value);
+const percent = (value: number | null | undefined) => value === null || value === undefined ? '정보 없음' : `${value}%`;
+const date = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString('ko-KR') : '정보 없음';
 
 export function FormulaDetail() {
+  const pathname = usePathname();
+  const candidateId = Number(pathname.split('/').filter(Boolean).at(-1));
   const [active, setActive] = useState<Tab>('조향식 구성');
-  const [selected, setSelected] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const summary = '목표 일치도 92% · 우디 머스크 바디로션 리뉴얼';
-  const [draftSummary, setDraftSummary] = useState(
-    '머스크 느낌을 조금 줄이고 우디를 강화해주세요.',
-  );
+  const [candidate, setCandidate] = useState<CandidateResponse | null>(null);
+  const [request, setRequest] = useState<FragranceRequestResponse | null>(null);
+  const [safety, setSafety] = useState<SafetyEvaluationResponse | null>(null);
+  const [prediction, setPrediction] = useState<PredictionResponse | null>(null);
+  const [evidence, setEvidence] = useState<EvidenceLog[]>([]);
+  const [memos, setMemos] = useState<CandidateMemoResponse[]>([]);
   const [notice, setNotice] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [revisionPreview, setRevisionPreview] = useState('');
+
+  useEffect(() => {
+    if (!Number.isInteger(candidateId) || candidateId < 1) {
+      queueMicrotask(() => { setNotice('잘못된 후보 주소입니다.'); setLoading(false); });
+      return;
+    }
+    let alive = true;
+    queueMicrotask(() => setLoading(true));
+    candidateApi.detail(candidateId).then(async (item) => {
+      if (!alive) return;
+      setCandidate(item);
+      const results = await Promise.allSettled([
+        requestApi.detail(item.requestId), safetyApi.detail(candidateId),
+        predictionApi.detail(candidateId), evidenceApi.logs(candidateId), candidateApi.memos(candidateId),
+      ]);
+      if (!alive) return;
+      if (results[0].status === 'fulfilled') setRequest(results[0].value);
+      if (results[1].status === 'fulfilled') setSafety(results[1].value);
+      if (results[2].status === 'fulfilled') setPrediction(results[2].value);
+      if (results[3].status === 'fulfilled') setEvidence(results[3].value);
+      if (results[4].status === 'fulfilled') setMemos(results[4].value);
+    }).catch((error: unknown) => {
+      if (alive) setNotice(error instanceof Error ? error.message : '후보를 불러오지 못했습니다.');
+    }).finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [candidateId]);
 
   async function selectFinalCandidate() {
-    setSelected(true);
-    setNotice('최종후보로 선택했습니다.');
     try {
-      await experimentApi.update(1, 'CONFIRMED_FOR_EXPERIMENT');
-    } catch {
-      setNotice(
-        '화면에 최종후보로 저장했습니다. 백엔드 연결 후 서버에도 반영됩니다.',
-      );
-    }
+      await experimentApi.update(candidateId, 'CONFIRMED_FOR_EXPERIMENT');
+      setCandidate((item) => item ? { ...item, status: 'CONFIRMED_FOR_EXPERIMENT' } : item);
+      setNotice('최종후보 선택이 서버에 저장됐습니다.');
+    } catch (error) { setNotice(error instanceof Error ? error.message : '선택을 저장하지 못했습니다.'); }
   }
 
-  function duplicateCandidate() {
-    sessionStorage.setItem(
-      'perfumery.duplicated-candidate',
-      JSON.stringify({ sourceId: 1, summary }),
-    );
-    setNotice('후보 복제본을 임시 저장했습니다.');
+  async function duplicateCandidate() {
+    const reason = window.prompt('복제 사유를 입력해 주세요.');
+    if (!reason?.trim()) return;
+    try {
+      const copy = await candidateApi.duplicate(candidateId, reason.trim());
+      window.location.assign(`/formulas/${copy.candidateId}`);
+    } catch (error) { setNotice(error instanceof Error ? error.message : '후보를 복제하지 못했습니다.'); }
   }
 
-  function toggleEdit() {
-    setEditing(true);
+  async function saveMemo(memoType: CandidateMemoType, content: string) {
+    const existing = memos.find((item) => item.memoType === memoType);
+    try {
+      const saved = await candidateApi.saveMemo(candidateId, memoType, content, existing?.revision ?? 0);
+      setMemos((items) => [...items.filter((item) => item.memoType !== memoType), saved]);
+      setNotice('메모가 서버에 저장됐습니다.');
+    } catch (error) { setNotice(error instanceof Error ? error.message : '메모를 저장하지 못했습니다.'); }
   }
 
-  function confirmEdit() {
-    sessionStorage.setItem(
-      'perfumery.candidate-edit',
-      JSON.stringify({ candidateId: 1, request: draftSummary }),
-    );
-    setNotice('후보 수정 요청을 저장했습니다.');
-    setEditing(false);
+  async function previewRevision() {
+    if (!draft.trim()) return;
+    try {
+      const preview = await candidateApi.previewRevision(candidateId, draft.trim());
+      setRevisionPreview(JSON.stringify(preview, null, 2));
+      setNotice('수정 진단 결과를 받았습니다. 이 단계에서는 후보가 저장되지 않습니다.');
+    } catch (error) { setNotice(error instanceof Error ? error.message : '수정 진단에 실패했습니다.'); }
   }
+
+  const version = candidate?.currentVersion;
+  const ingredients = version?.ingredients ?? [];
+  const status = candidate?.status === 'CONFIRMED_FOR_EXPERIMENT' ? '최종후보 선택됨' : display(candidate?.status);
 
   return (
     <div className="wf-layout">
       <aside className="wf-rail wf-rail-left" />
       <section className="wf-detail">
         <div className="wf-detail-hero">
-          <Link href="/formulas" className="wf-back">
-            <Image
-              className="wf-back-icon"
-              src="/figma/back-arrow.svg"
-              alt=""
-              width={20}
-              height={20}
-            />
-            후보 목록으로 돌아가기
-          </Link>
-          <h1 className="wf-detail-title">FORMULA 01</h1>
-          <p className="wf-detail-sub">{summary}</p>
-          <div className="wf-detail-meta">
-            <span>생성일&nbsp;&nbsp; 2026. 09.04</span>
-            <span>버전&nbsp;&nbsp; V1</span>
-          </div>
+          <Link href="/formulas" className="wf-back"><Image className="wf-back-icon" src="/figma/back-arrow.svg" alt="" width={20} height={20} />후보 목록으로 돌아가기</Link>
+          <h1 className="wf-detail-title">{candidate ? `FORMULA ${String(candidate.candidateId).padStart(2, '0')}` : '후보 조향식'}</h1>
+          <p className="wf-detail-sub">{version?.generationRationale || request?.structuredIntent.rawText || (loading ? '불러오는 중…' : '설명 없음')}</p>
+          <div className="wf-detail-meta"><span>생성일&nbsp;&nbsp; {date(version?.createdAt)}</span><span>버전&nbsp;&nbsp; {version ? `V${version.versionId}` : '정보 없음'}</span><span>상태&nbsp;&nbsp; {status}</span></div>
           <div className="wf-detail-actions">
-            <button
-              type="button"
-              className={`wf-btn wf-btn-dark ${selected ? 'is-selected' : ''}`}
-              onClick={selectFinalCandidate}
-            >
-              {selected ? '최종후보 선택됨' : '최종후보 선택'}
-            </button>
-            <button
-              type="button"
-              className="wf-btn"
-              onClick={duplicateCandidate}
-            >
-              후보 복제
-            </button>
-            <button type="button" className="wf-btn" onClick={toggleEdit}>
-              후보 수정
-            </button>
+            <button type="button" className="wf-btn wf-btn-dark" onClick={selectFinalCandidate} disabled={!candidate || candidate.status === 'CONFIRMED_FOR_EXPERIMENT'}>{candidate?.status === 'CONFIRMED_FOR_EXPERIMENT' ? '최종후보 선택됨' : '최종후보 선택'}</button>
+            <button type="button" className="wf-btn" onClick={duplicateCandidate} disabled={!candidate}>후보 복제</button>
+            <button type="button" className="wf-btn" onClick={() => setEditing(true)} disabled={!candidate}>후보 수정</button>
             {notice && <output className="wf-action-notice">{notice}</output>}
           </div>
         </div>
-        <div className="wf-tabs">
-          {tabs.map((tab) => (
-            <button
-              type="button"
-              className={`wf-tab ${active === tab ? 'active' : ''}`}
-              onClick={() => setActive(tab)}
-              key={tab}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        <div className="wf-tabs">{tabs.map((tab) => <button type="button" className={`wf-tab ${active === tab ? 'active' : ''}`} onClick={() => setActive(tab)} key={tab}>{tab}</button>)}</div>
         <div className="wf-detail-body">
-          {active === '조향식 구성' && <Composition />}
-          {active === '성능 프록시' && <Performance />}
-          {active === '안전 / 규제' && <Safety />}
-          {active === '근거&데이터' && <Evidence />}
-          {active === '메모' && <Memo />}
+          {loading ? <p>후보 데이터를 불러오는 중입니다.</p> : !candidate ? <p>{notice || '후보를 찾을 수 없습니다.'}</p> : <>
+            {active === '조향식 구성' && <div className="wf-formula-cols"><div><h2 className="wf-panel-title">향료 원액 배합비</h2><div className="wf-mix-card"><div className="wf-bars">{ingredients.length ? ingredients.map((item) => <div className="wf-bar-row" key={item.ingredientId}><span>{item.name}</span><div className="wf-bar-track"><div className="wf-bar-fill" style={{ width: `${Math.min(100, Math.max(0, item.concentratePercent))}%` }} /></div><span>{percent(item.concentratePercent)}</span></div>) : <p>배합 데이터가 없습니다.</p>}</div></div></div><div><h2 className="wf-panel-title">조향식 정보</h2><div className="wf-info-card">{[['원료 수', `${ingredients.length}개`], ['원액 원가', version?.cost == null ? '정보 없음' : `₩${version.cost.toLocaleString()} / kg`], ['제품 유형', display(request?.structuredIntent.productCategory)], ['사용 농도', percent(request?.structuredIntent.usageConcentrationPercent)], ['목표 지역', display(request?.structuredIntent.targetRegion)]].map(([label, value]) => <div className="wf-info-row" key={label}><span>{label}</span><b>{value}</b></div>)}</div></div></div>}
+            {active === '성능 프록시' && <div className="wf-performance"><h2 className="wf-panel-title">성능 예측</h2><div className="wf-info-card">{[['예측 상태', display(prediction?.status)], ['유사도 점수', display(prediction?.similarityScore)], ['신뢰도', display(prediction?.confidence)], ['모델 적용 가능성', percent(prediction?.modelApplicabilityPercent)], ['검증 상태', display(prediction?.olfactoryValidationStatus)]].map(([label, value]) => <div className="wf-info-row" key={label}><span>{label}</span><b>{value}</b></div>)}</div><div className="wf-calculation-note"><b>시간 변화 데이터</b><span>{version?.temporal?.timepointsMinutes?.length ? version.temporal.timepointsMinutes.map((minute) => `${minute}분`).join(' · ') : '시간별 수치가 제공되지 않았습니다.'}</span><span>{version?.temporal?.claimBoundary || '최종 제품 성능은 별도 시험이 필요합니다.'}</span></div></div>}
+            {active === '안전 / 규제' && <div className="wf-safety-layout"><div className="wf-safety-card">{[['제품 유형', display(safety?.productCategory ?? request?.structuredIntent.productCategory)], ['사용 농도', percent(request?.structuredIntent.usageConcentrationPercent)], ['검토 상태', display(safety?.status)], ['내부 게이트', display(safety?.internalGatePassed)], ['제조 준비', display(safety?.manufacturingReady)], ['근거 충족률', percent(safety?.evidenceCoveragePercent)]].map(([label, value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}</div><div className="wf-safety-copy"><h2>{safety?.status || '안전성 검토 데이터 없음'}</h2><p>{safety?.internalGatePassed ? '내부 안전 게이트를 통과했습니다.' : '안전·규제 검토 결과를 확인해 주세요.'}</p><small>※ 제품 적용 전 최신 기준과 실제 시험 결과를 별도 확인해야 합니다.</small></div></div>}
+            {active === '근거&데이터' && <div><div className="wf-evidence"><div className="wf-evidence-metric"><h2>원료 데이터</h2><strong>{ingredients.length}</strong><span>후보에 사용된 원료</span></div><div className="wf-evidence-metric"><h2>근거 기록</h2><strong>{evidence.length}</strong><span>서버에 기록된 항목</span></div></div><div className="wf-evidence-strip"><div><span>모델 적용 가능성</span><b>{percent(prediction?.modelApplicabilityPercent)}</b></div><div><span>검증 수준</span><b>{display(safety?.validationLevel)}</b></div><div><span>기준 검토일</span><b>{display(safety?.standardsCheckedOn)}</b></div></div>{evidence.map((item, index) => <p key={`${item.occurredAt}-${index}`}>{item.action} · {date(item.occurredAt)} · {item.detail || '상세 내용 없음'}</p>)}</div>}
+            {active === '메모' && <div className="wf-memos">{([['INPUT_NOTE', '입력 내용'], ['REVIEW_NOTE', '검토 사항'], ['NEXT_EXPERIMENT_NOTE', '다음 실험']] as const).map(([memoType, label]) => { const memo = memos.find((item) => item.memoType === memoType); return <MemoEditor key={memoType} label={label} initialContent={memo?.content ?? ''} updatedAt={memo?.updatedAt ?? null} onSave={(content) => saveMemo(memoType, content)} />; })}</div>}
+          </>}
         </div>
       </section>
-      {editing && (
-        <div className="wf-edit-backdrop">
-          <dialog
-            open
-            className="wf-edit-modal"
-            aria-labelledby="candidate-edit-title"
-          >
-            <button
-              type="button"
-              className="wf-edit-close"
-              onClick={() => setEditing(false)}
-              aria-label="닫기"
-            >
-              ×
-            </button>
-            <h2 id="candidate-edit-title">후보 수정</h2>
-            <label>
-              <b>자연어로 수정 요청을 입력해주세요.</b>
-              <textarea
-                value={draftSummary}
-                onChange={(event) => setDraftSummary(event.target.value)}
-              />
-            </label>
-            <h3>수정 전 / 후 비교</h3>
-            <div className="wf-edit-comparison">
-              {[
-                [
-                  'BEFORE',
-                  [
-                    'Citrus',
-                    '20%',
-                    'Woody',
-                    '30%',
-                    'Amber',
-                    '15%',
-                    'Musk',
-                    '25%',
-                  ],
-                ],
-                [
-                  'AFTER',
-                  [
-                    'Citrus',
-                    '20%',
-                    'Woody',
-                    '38%',
-                    'Amber',
-                    '15%',
-                    'Musk',
-                    '18%',
-                  ],
-                ],
-              ].map(([title, values]) => (
-                <div key={title as string}>
-                  <h4>{title}</h4>
-                  {(values as string[])
-                    .filter((_, index) => index % 2 === 0)
-                    .map((label, index) => (
-                      <p key={label}>
-                        <span>{label}</span>
-                        <b>{(values as string[])[index * 2 + 1]}</b>
-                      </p>
-                    ))}
-                </div>
-              ))}
-            </div>
-            <h3>예상 점수</h3>
-            <div className="wf-edit-score">
-              <span>82.4 → 86.4</span>
-              <b>▲ 4.3</b>
-            </div>
-            <div className="wf-edit-actions">
-              <button
-                type="button"
-                className="wf-btn"
-                onClick={() => setEditing(false)}
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                className="wf-btn wf-btn-dark"
-                onClick={confirmEdit}
-              >
-                확인
-              </button>
-            </div>
-          </dialog>
-        </div>
-      )}
+      {editing && <div className="wf-edit-backdrop"><dialog open className="wf-edit-modal" aria-labelledby="candidate-edit-title"><button type="button" className="wf-edit-close" onClick={() => setEditing(false)} aria-label="닫기">×</button><h2 id="candidate-edit-title">후보 수정 진단</h2><p>수정 요청을 서버에서 분석합니다. 이 결과는 새 후보를 저장하거나 승인하지 않습니다.</p><label><b>수정 요청</b><textarea value={draft} onChange={(event) => setDraft(event.target.value)} /></label>{revisionPreview && <pre className="wf-revision-preview">{revisionPreview}</pre>}<div className="wf-edit-actions"><button type="button" className="wf-btn" onClick={() => setEditing(false)}>닫기</button><button type="button" className="wf-btn wf-btn-dark" onClick={previewRevision} disabled={!draft.trim()}>진단 요청</button></div></dialog></div>}
     </div>
   );
+}
+
+function MemoEditor({ label, initialContent, updatedAt, onSave }: { label: string; initialContent: string; updatedAt: string | null; onSave: (content: string) => void }) {
+  const [content, setContent] = useState(initialContent);
+  useEffect(() => { queueMicrotask(() => setContent(initialContent)); }, [initialContent]);
+  return <article><b>{label}</b><textarea className="wf-memo-input" value={content} onChange={(event) => setContent(event.target.value)} placeholder="메모를 입력해 주세요." /><span className="wf-memo-meta">{date(updatedAt)}</span><button type="button" className="wf-btn" onClick={() => onSave(content)} disabled={content === initialContent}>저장</button></article>;
 }

@@ -52,7 +52,7 @@ export default defineConfig(async () => {
         : {}),
       proxy: {
         '/api/v1': {
-          target: 'http://localhost:8080',
+          target: 'https://api.perfumery.studio',
           changeOrigin: true,
         },
       },
