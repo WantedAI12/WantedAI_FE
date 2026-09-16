@@ -32,7 +32,7 @@ export function AppShell({
         <header className="wf-header">
           <div className="wf-header-inner is-home">
             <Link href={routes.home} className="wf-brand">
-              PERFUMERY AI CORE
+              PEFUMERY
             </Link>
             <button
               type="button"

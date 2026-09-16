@@ -27,7 +27,7 @@ export function ForgotPasswordForm() {
   }
 
   return <main className="wf-forgot"><section className="wf-forgot-card">
-    <Link href="/" className="wf-auth-brand">PERFUMERY AI CORE</Link>
+    <Link href="/" className="wf-auth-brand">PEFUMERY</Link>
     <h1 className="wf-auth-title" style={{marginTop:56}}>비밀번호 찾기</h1>
     <p className="wf-forgot-copy">가입한 이메일을 입력하면 비밀번호 재설정 안내를 보내드립니다.</p>
     {sent ? <p className="wf-forgot-copy" style={{marginTop:36}}>가입 여부와 관계없이, 입력한 이메일로 재설정 안내가 발송됩니다.</p> :

@@ -1,4 +1,4 @@
-# Perfumery AI Core Frontend
+# Pefumery Frontend
 
 향 개발 프로젝트의 요청, 후보 조향식, 원료, 안전·규제 검토를 관리하는 React 기반 R&D 워크스페이스입니다.
 

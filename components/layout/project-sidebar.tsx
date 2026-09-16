@@ -38,7 +38,7 @@ export function ProjectSidebar() {
   return (
     <aside className="project-sidebar">
       <Link href="/" className="project-sidebar-brand">
-        PERFUMERY AI CORE
+        PEFUMERY
       </Link>
       <button
         type="button"
