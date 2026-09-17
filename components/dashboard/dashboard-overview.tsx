@@ -47,7 +47,7 @@ export function DashboardOverview() {
             <Link href="/requests" className="wf-btn wf-btn-dark">
               새 향 요청하기
             </Link>
-            <Link href="/formulas" className="wf-btn">
+            <Link href="/projects" className="wf-btn">
               프로젝트 보기
             </Link>
           </div>

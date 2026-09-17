@@ -1,7 +1,8 @@
 import type { CandidateVersionResponse, EvidenceLog, FragranceRequestResponse, PredictionResponse, SafetyEvaluationResponse } from '@/types/domain';
 
-const shown = (value: string | number | null | undefined) => value === null || value === undefined || value === '' ? '—' : String(value);
-const pct = (value: number | null | undefined) => value === null || value === undefined ? '—' : `${value}%`;
+import { displayLabel, displayPercent } from '@/lib/display-labels';
+const shown = (value: string | number | null | undefined) => displayLabel(value == null ? null : String(value));
+const pct = displayPercent;
 const productName = (value: string | null | undefined) => value === 'EAU_DE_PARFUM' ? '향수' : value === 'BODY_LOTION' ? '바디로션' : shown(value);
 const concentration = (request: FragranceRequestResponse | null) => request?.structuredIntent.usageConcentrationPercent;
 
@@ -15,7 +16,7 @@ export function CompositionSection({ version, request, onDownload }: { version: 
   return <div className="fd-composition">
     <div className="wf-formula-cols">
       <section><h2 className="wf-panel-title">향료 원액 배합비</h2><div className="wf-mix-card">{displayed.length ? displayed.map((item) => <div className="wf-bar-row" key={item.key}><span title={item.name}>{item.name}</span><div className="wf-bar-track"><div className="wf-bar-fill" style={{ width: `${Math.min(100, Math.max(0, item.value / largest * 100))}%` }} /></div><span>{pct(Number(item.value.toFixed(1)))}</span></div>) : <p className="fd-no-data">후보 생성 후 배합비가 표시됩니다.</p>}</div></section>
-      <section><h2 className="wf-panel-title">조향식 정보</h2><div className="wf-info-card">{[['목표 일치도', '—'], ['예상 원가', version?.cost == null ? '—' : `₩${version.cost.toLocaleString()} / kg`], ['사용 농도', pct(concentration(request))], ['제품 유형', productName(request?.structuredIntent.productCategory)], ['지속성 예측', '—']].map(([label, value]) => <div className="wf-info-row" key={label}><span>{label}</span><b>{value}</b></div>)}</div></section>
+      <section><h2 className="wf-panel-title">조향식 정보</h2><div className="wf-info-card">{[['목표 일치도', '미제공'], ['예상 원가', version?.cost == null ? '—' : `₩${version.cost.toLocaleString()} / kg`], ['사용 농도', pct(concentration(request))], ['제품 유형', productName(request?.structuredIntent.productCategory)], ['지속성 예측', '미제공']].map(([label, value]) => <div className="wf-info-row" key={label}><span>{label}</span><b>{value}</b></div>)}</div></section>
     </div>
     <div className="fd-composition-footer"><section><h2 className="wf-panel-title">완제품 함량</h2><div className="fd-finished-rows"><div><span>적용 농도</span><b>{pct(concentration(request))}</b></div><div><span>배치 기준</span><b>—</b></div><div className="is-highlighted"><span>향료 함량</span><b>{ingredients.length ? `${Number(fragranceAmount.toFixed(2))}%` : '—'}</b></div><div><span>기타 원료</span><b>—</b></div></div></section><button type="button" className="wf-btn wf-btn-dark" onClick={onDownload} disabled={!version}>노트 내려받기</button></div>
   </div>;
@@ -38,7 +39,7 @@ export function PerformanceSection({ version, request, prediction }: { version: 
   const ratios = series.map((item) => ({ name: item.name, value: item.values.find((value) => value !== null) }));
   return <div className="fd-performance"><h2 className="wf-panel-title">시간에 따른 향 변화</h2>{series.length && times.length ? <div className="fd-chart-wrap"><svg viewBox="0 0 900 265" aria-label="시간에 따른 향 변화"><line x1="45" x2="875" y1="210" y2="210" stroke="#c8c8c8"/><line x1="45" x2="45" y1="18" y2="210" stroke="#e0e0e0"/>{[0, 0.5, 1].map((step) => <text key={step} x="35" y={215 - step * 185} textAnchor="end" fontSize="13" fill="#555">{Math.round(max * step)}</text>)}{series.map((item) => <g key={item.name}><polyline fill="none" stroke={item.color} strokeWidth="1.5" strokeLinejoin="round" points={item.values.map((value, index) => value === null ? '' : `${x(index)},${y(value)}`).filter(Boolean).join(' ')} />{item.values.map((value, index) => value === null ? null : <circle key={index} cx={x(index)} cy={y(value)} r="6" fill={item.color} />)}</g>)}{times.map((minute, index) => <text key={index} x={x(index)} y="250" textAnchor="middle" fontSize="13" fill="#555">{minute >= 60 ? `${minute / 60}h` : `${minute}m`}</text>)}</svg><div className="fd-chart-legend">{series.map((item) => <span key={item.name}><i style={{ background: item.color }} /><b className="fd-legend-label">{item.name}</b></span>)}</div></div> : <div className="fd-empty-graph">표시할 시간별 향 변화 데이터가 없습니다.</div>}
     <div className="wf-performance-cards"><div className="wf-performance-summary"><span>사용 농도</span><b>{pct(concentration(request))}</b><span>예측 상태</span><b>{shown(prediction?.status)}</b><span>모델 적용 가능성</span><b>{pct(prediction?.modelApplicabilityPercent)}</b></div><div className="wf-scent-ratios">{ratios.length ? ratios.map((item) => <div key={item.name}><span>{item.name}</span><b>{item.value == null ? '—' : pct(Number(item.value.toFixed(1)))}</b></div>) : <p>계열별 예측 수치가 없습니다.</p>}</div></div>
-    <div className="wf-calculation-note"><b>ⓘ 계산조건</b><span>적용 농도 {pct(concentration(request))}</span><span>베이스: {productName(request?.structuredIntent.productCategory)}</span><span>{version?.temporal?.claimBoundary || '실제 성능은 별도 측정 결과와 다를 수 있습니다.'}</span></div>
+    <div className="wf-calculation-note"><b>ⓘ 계산조건</b><span>적용 농도 {pct(concentration(request))}</span><span>베이스: {productName(request?.structuredIntent.productCategory)}</span><span>{version?.temporal?.claimBoundary ? displayLabel(version.temporal.claimBoundary) : '실제 성능은 별도 측정 결과와 다를 수 있습니다.'}</span></div>
   </div>;
 }
 

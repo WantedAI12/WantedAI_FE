@@ -1,4 +1,8 @@
 /* Layout uses CSS pixels, never a viewport-height-dependent page zoom. */
+.wf-formula-page .wf-card .wf-tags { right: 82px; }
+.wf-formula-page .wf-card .wf-tag { max-width: 100%; min-width: 0; height: auto; min-height: 32px; white-space: normal; overflow-wrap: anywhere; padding: 6px 11px; }
+.project-sidebar-user small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wf-profile-identity > div > span { overflow-wrap: anywhere; }
 .wf-main, .wf-detail, .wf-structured-grid > *, .wf-formula-cols > *,
 .wf-safety-layout > *, .wf-org-content > * { min-width: 0; }
 .wf-profile-card, .wf-profile-edit-card { width: 100%; max-width: 1048px; }

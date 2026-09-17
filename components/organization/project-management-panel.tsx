@@ -102,7 +102,7 @@ export function ProjectManagementPanel({
   );
   const pages = Math.max(1, Math.ceil(filtered.length / 7));
   const currentPage = Math.min(page, pages - 1);
-  const selected = projects.find((project) => project.projectId === selectedId);
+  const selected = filtered.find((project) => project.projectId === selectedId);
   const summary = selected ? summaries[selected.projectId] : undefined;
   return (
     <div className="pm-grid">

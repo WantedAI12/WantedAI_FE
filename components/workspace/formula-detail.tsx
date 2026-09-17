@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { displayLabel, displayPercent } from '@/lib/display-labels';
 import Link from '@/components/ui/app-link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -10,8 +11,8 @@ import type { CandidateMemoResponse, CandidateMemoType, CandidateResponse, Candi
 
 const tabs = ['조향식 구성', '성능 프록시', '안전 / 규제', '근거&데이터', '메모'] as const;
 type Tab = (typeof tabs)[number];
-const display = (value: string | number | boolean | null | undefined) => value === null || value === undefined || value === '' ? '정보 없음' : String(value);
-const percent = (value: number | null | undefined) => value === null || value === undefined ? '정보 없음' : `${value}%`;
+const display = (value: string | number | boolean | null | undefined) => value === null || value === undefined || value === '' ? '미제공' : displayLabel(String(value));
+const percent = displayPercent;
 const date = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString('ko-KR') : '정보 없음';
 
 export function FormulaDetail({ requestOnly = false }: { requestOnly?: boolean }) {

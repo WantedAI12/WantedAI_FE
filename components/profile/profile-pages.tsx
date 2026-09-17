@@ -1,6 +1,7 @@
 'use client';
 
 import Link from '@/components/ui/app-link';
+import { displayLabel } from '@/lib/display-labels';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ProjectSidebar } from '@/components/layout/project-sidebar';
@@ -75,7 +76,7 @@ export function ProfilePage() {
             </div>
             <div>
               <dt>직책</dt>
-              <dd>{member?.projects?.[0]?.role ?? '—'}</dd>
+              <dd>{displayLabel(member?.projects?.[0]?.role)}</dd>
             </div>
             <div>
               <dt>가입일</dt>
@@ -155,7 +156,7 @@ export function ProfileEditPage() {
               </label>
               <label>
                 직책
-                <input value={member?.projects?.[0]?.role ?? ''} disabled />
+                <input value={displayLabel(member?.projects?.[0]?.role)} disabled />
               </label>
               <div className="wf-profile-field">
                 비밀번호 변경

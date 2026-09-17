@@ -727,7 +727,7 @@ function FormulaCard({
           ? '목표 미달'
           : lotionDetail?.searchIncomplete === true
             ? '일부 완료'
-            : 'SUCCEEDED';
+            : '생성 완료';
   const statusLabel: Record<CandidateResponse['status'], string> = {
     UNDER_REVIEW: '검토 중',
     CONFIRMED_FOR_EXPERIMENT: '시험 확정',
