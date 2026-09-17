@@ -31,7 +31,7 @@ export function SignupForm() {
   }
 
   return <main className="wire-signup"><div className="wire-signup-canvas">
-    <Link href="/" className="wire-signup-brand">PEFUMERY</Link>
+    <Link href="/" className="wire-signup-brand">PERFUMERY</Link>
     <form className="wire-signup-form" onSubmit={submit}>
       {error && <p className="signup-error">{error}</p>}
       <label className="wire-signup-row row-1"><span>이메일</span><input className="wire-signup-input" name="email" type="email" required placeholder="이메일을 입력하세요." /></label>

@@ -38,7 +38,7 @@ export function ProjectSidebar() {
   return (
     <aside className="project-sidebar">
       <Link href="/" className="project-sidebar-brand">
-        PEFUMERY
+        PERFUMERY
       </Link>
       <button
         type="button"

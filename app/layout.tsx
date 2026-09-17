@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Pefumery',
+  title: 'Perfumery',
   description: '향 개발 연구와 검증을 위한 R&D 운영 워크스페이스',
 };
 

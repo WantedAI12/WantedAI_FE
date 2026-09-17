@@ -45,7 +45,7 @@ export function LoginForm() {
 
   return (
     <main className="wf-auth">
-      <Link href="/" className="wf-auth-brand">PEFUMERY</Link>
+      <Link href="/" className="wf-auth-brand">PERFUMERY</Link>
       <div className="wf-auth-grid">
         <section>
           <h1 className="wf-auth-message">
