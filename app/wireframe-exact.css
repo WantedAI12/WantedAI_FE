@@ -605,6 +605,7 @@ html::-webkit-scrollbar{display:none}
   box-sizing:border-box;
 }
 .wf-edit-backdrop{z-index:500}
+.wf-project-modal-backdrop{z-index:600}
 .wf-edit-modal,.wf-project-modal,.wf-download-modal,.wf-invite-modal{
   width:min(727px,calc(100vw - clamp(24px,6vw,64px)));
   max-height:calc(100dvh - clamp(24px,6vw,64px));
@@ -621,7 +622,6 @@ html::-webkit-scrollbar{display:none}
 @media(max-width:1100px){
   .wf-layout:has(.wf-edit-backdrop) .wf-main,
   .wf-layout:has(.wf-edit-backdrop) .wf-detail,
-  .wf-layout:has(.wf-project-modal-backdrop) .wf-main,
   .wf-layout:has(.wf-download-backdrop) .wf-main,
   .wf-layout:has(.wf-invite-backdrop) .wf-main{position:relative;z-index:400}
   .wf-edit-modal,.wf-project-modal,.wf-download-modal,.wf-invite-modal{

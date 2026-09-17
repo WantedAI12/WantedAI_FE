@@ -86,6 +86,19 @@ function ProjectOrganizationWorkspace({
   const [checklistSaving, setChecklistSaving] =
     useState<WorkChecklistItemType | null>(null);
 
+  const projectDialogOpen = editOpen || deleteTarget !== null;
+  useEffect(() => {
+    if (!projectDialogOpen) return;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousRootOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousRootOverflow;
+    };
+  }, [projectDialogOpen]);
+
   async function refreshProjects() {
     try {
       const items = await projectApi.list();
@@ -538,6 +551,7 @@ function ProjectOrganizationWorkspace({
         <div className="wf-project-modal-backdrop">
           <form
             className="wf-project-modal"
+            aria-labelledby="project-edit-title"
             onSubmit={(event) => {
               event.preventDefault();
               void saveEdit();
@@ -551,7 +565,7 @@ function ProjectOrganizationWorkspace({
             >
               ×
             </button>
-            <h2>프로젝트 정보 수정</h2>
+            <h2 id="project-edit-title">프로젝트 정보 수정</h2>
             <h3 className="pm-edit-heading">기본정보</h3>
             <div className="pm-edit-basics">
               <label>
