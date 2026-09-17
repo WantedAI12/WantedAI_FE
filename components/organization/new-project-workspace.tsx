@@ -4,21 +4,42 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { ProjectSidebar } from '@/components/layout/project-sidebar';
 import { routes } from '@/lib/routes';
-
-const checklist = [
-  '향 콘셉트 정의',
-  '후보 조향식 검토',
-  '안전 규제 검토',
-  '성능 시험',
-  '관능 검증',
-  '최종 조향식 확정',
-];
+import { projectApi } from '@/lib/api/resources';
+import { ApiError, tokenStorage } from '@/lib/api/client';
 
 export function NewProjectWorkspace() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState('');
   const [notice, setNotice] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function createProject(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!tokenStorage.getAccessToken() && !tokenStorage.getRefreshToken()) {
+      setNotice('프로젝트를 만들려면 로그인해 주세요.');
+      return;
+    }
+    const form = new FormData(event.currentTarget);
+    const name = form.get('name');
+    const description = form.get('description');
+    const dueDate = form.get('dueDate');
+    if (typeof name !== 'string' || typeof description !== 'string') return;
+    setSaving(true);
+    setNotice('');
+    try {
+      await projectApi.create({
+        name: name.trim(),
+        description: description.trim(),
+        dueDate: typeof dueDate === 'string' ? dueDate || null : null,
+      });
+      router.push(routes.projects);
+    } catch (cause) {
+      setNotice(cause instanceof ApiError ? cause.message : '프로젝트 생성에 실패했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="wf-layout wf-new-project-page">
@@ -34,14 +55,12 @@ export function NewProjectWorkspace() {
         </button>
         <h1>새 프로젝트 만들기</h1>
         <p className="wf-new-project-sub">
-          프로젝트 정보를 입력하고 체크리스트를 설정해보세요.
+          프로젝트 정보를 입력해 주세요. 담당자와 작업 체크리스트는 생성 후 관리할 수 있습니다.
         </p>
         <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            setNotice('프로젝트가 생성되었습니다.');
-          }}
+          onSubmit={createProject}
         >
+          <p>프로젝트 이름·설명·마감일이 저장됩니다. 이미지 업로드는 아직 지원되지 않습니다.</p>
           <div className="wf-project-image-row">
             <div className="wf-project-image-placeholder">▧</div>
             <div>
@@ -49,11 +68,12 @@ export function NewProjectWorkspace() {
                 ref={fileRef}
                 type="file"
                 accept="image/*"
+                disabled
                 onChange={(event) =>
                   setFileName(event.target.files?.[0]?.name ?? '')
                 }
               />
-              <button type="button" onClick={() => fileRef.current?.click()}>
+              <button type="button" disabled onClick={() => fileRef.current?.click()}>
                 이미지 업로드
               </button>
               <p>
@@ -63,46 +83,26 @@ export function NewProjectWorkspace() {
           </div>
           <label className="wf-new-project-field">
             프로젝트 이름
-            <input required placeholder="프로젝트 명을 입력해주세요" />
+            <input name="name" required placeholder="프로젝트 명을 입력해주세요" />
           </label>
           <label className="wf-new-project-field">
             프로젝트 설명
             <input
+              name="description"
               required
               placeholder="프로젝트에 대한 간단한 설명을 입력해주세요."
             />
           </label>
-          <fieldset className="wf-new-project-checklist">
-            <legend>체크 리스트 설정</legend>
-            <div>
-              {checklist.map((item) => (
-                <label key={item}>
-                  <input type="checkbox" />
-                  {item}
-                </label>
-              ))}
-            </div>
-          </fieldset>
           <div className="wf-new-project-bottom">
             <label>
               마감일
-              <input type="date" required />
-            </label>
-            <label>
-              담당자
-              <select required defaultValue="">
-                <option value="" disabled>
-                  담당자를 선택해주세요
-                </option>
-                <option>김멋사</option>
-                <option>박서연</option>
-              </select>
+              <input name="dueDate" type="date" />
             </label>
           </div>
-          <button type="submit" className="wf-new-project-submit">
-            확인
+          <button type="submit" className="wf-new-project-submit" disabled={saving}>
+            {saving ? '저장 중...' : '확인'}
           </button>
-          {notice && <output>{notice}</output>}
+          {notice && <output role="alert">{notice}</output>}
         </form>
       </main>
     </div>

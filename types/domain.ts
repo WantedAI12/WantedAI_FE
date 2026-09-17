@@ -41,11 +41,53 @@ export interface ProjectResponse {
   description: string | null;
   myRole: Role;
   memberCount: number;
+  startDate: string | null;
+  dueDate: string | null;
+  assigneeMemberId: Id | null;
   createdAt: string;
 }
 export interface ProjectCreate {
   name: string;
   description?: string | null;
+  startDate?: string | null;
+  dueDate?: string | null;
+}
+export interface ProjectUpdate extends Partial<ProjectCreate> {
+  assigneeMemberId?: Id;
+}
+export type WorkChecklistItemType =
+  | 'FRAGRANCE_BRIEF'
+  | 'CANDIDATE_REVIEW'
+  | 'SAFETY_REVIEW'
+  | 'TESTING'
+  | 'SENSORY_EVALUATION'
+  | 'FINAL_CONFIRMATION';
+export interface WorkChecklistItemResponse {
+  itemType: WorkChecklistItemType;
+  completed: boolean;
+  completedAt: string | null;
+  completedBy: Id | null;
+  assignedTo: Id | null;
+  assignedBy: Id | null;
+  assignedAt: string | null;
+  revision: number;
+}
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  hasNext: boolean;
+}
+export interface HubSummaryResponse {
+  projects: ProjectResponse[];
+  dueSoonProjects: ProjectResponse[];
+  pendingChecklistItems: Array<{
+    projectId: Id;
+    requestId: Id;
+    itemType: string;
+  }>;
 }
 export interface ProjectMemberResponse {
   memberId: Id;
@@ -82,6 +124,7 @@ export type ProductCategory =
   | 'EAU_DE_COLOGNE'
   | 'SHAMPOO'
   | 'BODY_WASH'
+  | 'BODY_LOTION'
   | 'CANDLE'
   | 'ROOM_SPRAY'
   | 'DIFFUSER';
@@ -171,13 +214,41 @@ export interface CandidateResponse {
   status: CandidateStatus;
   currentVersion: CandidateVersionResponse;
 }
+export interface LotionDetailResponse {
+  candidateId: Id;
+  versionId: Id;
+  status: string | null;
+  profileTargetMet: boolean | null;
+  searchIncomplete: boolean | null;
+  candidateUse: string | null;
+}
+export type CandidateMemoType = 'INPUT_NOTE' | 'REVIEW_NOTE' | 'NEXT_EXPERIMENT_NOTE';
+export interface CandidateMemoResponse {
+  memoType: CandidateMemoType;
+  content: string | null;
+  revision: number;
+  authorId: Id | null;
+  lastEditedBy: Id | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+export interface CandidateRevisionPreview {
+  schemaVersion: string | null;
+  request: unknown;
+  prepared: unknown;
+  adjustments: unknown;
+  newInferenceCount: number | null;
+  stateChanged: boolean | null;
+  nextOperation: string | null;
+  scope: string | null;
+}
 export interface CandidateCompareRow {
   candidateId: Id;
   status: CandidateStatus;
-  goalMatchScore: number;
-  cost: number;
-  supplyStability: number;
-  modelApplicabilityPercent: number;
+  goalMatchScore: number | null;
+  cost: number | null;
+  supplyStability: number | null;
+  modelApplicabilityPercent: number | null;
 }
 export interface SafetyEvaluationResponse {
   candidateId: Id;

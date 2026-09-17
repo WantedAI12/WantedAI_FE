@@ -3,29 +3,24 @@
 import Link from '@/components/ui/app-link';
 import Image from 'next/image';
 import { routes } from '@/lib/routes';
-import { useState } from 'react';
-
-const activities = [
-  ['조향식 생성 완료', 'FORMULA 01'],
-  ['프로젝트 업데이트', 'FORMULA 01 데이터 검증 진행중'],
-  ['팀원 초대', '김멋사 님이 팀에 합류했습니다'],
-  ['데이터 검증 완료', 'FORMULA 01 성능 예측'],
-  ['조향식 승인', '안전 규제 승인'],
-  ['조향식 생성 완료', 'FORMULA 01'],
-];
-
-const schedules = [
-  ['오늘', '9.06', '프로젝트 미팅', '오전 10:00 온라인'],
-  ['', '9.06', '조향식 검토 회의', '오전 10:00 회의실'],
-  ['', '9.06', '데이터 검증 리뷰', '오전 10:00'],
-  ['내일', '9.07', '프로젝트 미팅', '오전 10:00 온라인'],
-  ['', '9.07', '조향식 검토 회의', '오전 10:00 회의실'],
-  ['', '9.07', '데이터 검증 리뷰', '오전 10:00'],
-];
+import { useEffect, useState } from 'react';
+import { hubApi } from '@/lib/api/resources';
+import { tokenStorage } from '@/lib/api/client';
+import type { HubSummaryResponse } from '@/types/domain';
 
 export function DashboardOverview() {
   const [activityOpen, setActivityOpen] = useState(true);
   const [scheduleOpen, setScheduleOpen] = useState(true);
+  const [summary, setSummary] = useState<HubSummaryResponse | null>(null);
+  const [status, setStatus] = useState('');
+
+  useEffect(() => {
+    if (!tokenStorage.getAccessToken() && !tokenStorage.getRefreshToken()) {
+      queueMicrotask(() => setStatus('로그인하면 내 프로젝트 현황을 확인할 수 있습니다.'));
+      return;
+    }
+    hubApi.summary().then(setSummary).catch(() => setStatus('현황을 불러오지 못했습니다.'));
+  }, []);
 
   return (
     <div className="wf-home-canvas">
@@ -62,9 +57,9 @@ export function DashboardOverview() {
         <p className="wf-eyebrow">TODAY&apos;S ACTIVITY</p>
         <div className="wf-metrics">
           {[
-            ['12', 'Active Projects'],
-            ['28', 'Formulations'],
-            ['7', 'Experiments'],
+            [summary ? String(summary.projects.length) : '—', '내 프로젝트'],
+            [summary ? String(summary.pendingChecklistItems.length) : '—', '미완료 작업'],
+            [summary ? String(summary.dueSoonProjects.length) : '—', '마감 임박'],
           ].map(([value, label]) => (
             <div className="wf-metric" key={label}>
               <strong>{value}</strong>
@@ -74,38 +69,35 @@ export function DashboardOverview() {
         </div>
         <div className="wf-home-panels">
           <HomePanel
-            title="최근 활동"
+            title="미완료 작업"
             open={activityOpen}
             onToggle={() => setActivityOpen((open) => !open)}
           >
             <div className="wf-home-activity-list">
-              {activities.map(([title, copy], index) => (
-                <p key={`${title}-${index}`}>
-                  <span>
-                    <b>{title}</b>
-                    <small>{copy}</small>
-                  </span>
-                  <time>10:42</time>
+              {summary?.pendingChecklistItems.map((item) => (
+                <p key={`${item.requestId}-${item.itemType}`}>
+                  <span><b>{item.itemType}</b><small>요청 #{item.requestId} · 프로젝트 #{item.projectId}</small></span>
                 </p>
               ))}
+              {summary && summary.pendingChecklistItems.length === 0 && <p>미완료 작업이 없습니다.</p>}
+              {!summary && <p>{status || '현황을 불러오는 중...'}</p>}
             </div>
           </HomePanel>
           <HomePanel
-            title="이번주 주요 일정"
+            title="마감 임박 프로젝트"
             open={scheduleOpen}
             onToggle={() => setScheduleOpen((open) => !open)}
           >
             <div className="wf-home-schedule-list">
-              {schedules.map(([day, date, title, copy], index) => (
-                <p key={`${title}-${index}`}>
-                  <b>{day}</b>
-                  <time>{date}</time>
-                  <span>
-                    <strong>{title}</strong>
-                    <small>{copy}</small>
-                  </span>
+              {summary?.dueSoonProjects.map((project) => (
+                <p key={project.projectId}>
+                  <b>마감</b>
+                  <time>{project.dueDate ?? '미정'}</time>
+                  <span><strong>{project.name}</strong><small>{project.description ?? '설명 없음'}</small></span>
                 </p>
               ))}
+              {summary && summary.dueSoonProjects.length === 0 && <p className="wf-home-schedule-message">마감이 임박한 프로젝트가 없습니다.</p>}
+              {!summary && <p className="wf-home-schedule-message">{status || '일정을 불러오는 중...'}</p>}
             </div>
           </HomePanel>
         </div>

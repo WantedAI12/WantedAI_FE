@@ -1,9 +1,13 @@
 export const endpoints = {
+  hub: '/hub',
   auth: {
     signup: '/auth/signup',
     login: '/auth/login',
+    guest: '/auth/guest',
     refresh: '/auth/refresh',
     logout: '/auth/logout',
+    forgotPassword: '/auth/password/forgot',
+    resetPassword: '/auth/password/reset',
   },
   me: '/members/me',
   mePassword: '/members/me/password',
@@ -13,17 +17,25 @@ export const endpoints = {
   projectMember: (projectId: number, memberId: number) =>
     `/projects/${projectId}/members/${memberId}`,
   job: (jobId: number) => `/jobs/${jobId}`,
+  jobStream: (jobId: number) => `/jobs/${jobId}/stream`,
   jobRetry: (jobId: number) => `/jobs/${jobId}/retry`,
   jobCancel: (jobId: number) => `/jobs/${jobId}/cancel`,
   projectRequests: (projectId: number) => `/projects/${projectId}/requests`,
   request: (requestId: number) => `/requests/${requestId}`,
   requestConfirm: (requestId: number) => `/requests/${requestId}/confirm`,
+  requestChecklist: (requestId: number) => `/requests/${requestId}/checklist`,
+  requestChecklistItem: (requestId: number, itemType: string) =>
+    `/requests/${requestId}/checklist/${itemType}`,
   requestCandidates: (requestId: number) => `/requests/${requestId}/candidates`,
   compareCandidates: (requestId: number) =>
     `/requests/${requestId}/candidates/compare`,
   candidate: (candidateId: number) => `/candidates/${candidateId}`,
+  candidateLotionDetail: (candidateId: number) => `/candidates/${candidateId}/lotion-detail`,
   candidateDuplicate: (candidateId: number) =>
     `/candidates/${candidateId}/duplicate`,
+  candidateMemos: (candidateId: number) => `/candidates/${candidateId}/memos`,
+  candidateMemo: (candidateId: number, memoType: string) => `/candidates/${candidateId}/memos/${memoType}`,
+  candidateRevise: (candidateId: number) => `/candidates/${candidateId}/diagnostic-revise`,
   candidateVersions: (candidateId: number) =>
     `/candidates/${candidateId}/versions`,
   candidateVersion: (versionId: number) => `/candidates/versions/${versionId}`,

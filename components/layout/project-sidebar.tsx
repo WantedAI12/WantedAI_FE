@@ -3,8 +3,11 @@
 import Image from 'next/image';
 import Link from '@/components/ui/app-link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { routes } from '@/lib/routes';
+import { authApi } from '@/lib/api/resources';
+import { tokenStorage } from '@/lib/api/client';
+import type { MemberResponse } from '@/types/domain';
 
 const singleItems = [
   [routes.home, '프로젝트 홈', 'sidebar-home.svg'],
@@ -18,6 +21,11 @@ export function ProjectSidebar() {
   const [testsOpen, setTestsOpen] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [member, setMember] = useState<MemberResponse | null>(null);
+  useEffect(() => {
+    if (!tokenStorage.getAccessToken() && !tokenStorage.getRefreshToken()) return;
+    authApi.me().then(setMember).catch(() => undefined);
+  }, []);
   const experimentView = searchParams.get('view') ?? 'safety';
   const dataView = searchParams.get('view') ?? 'raw';
   const isActive = (href: string) =>
@@ -30,7 +38,7 @@ export function ProjectSidebar() {
   return (
     <aside className="project-sidebar">
       <Link href="/" className="project-sidebar-brand">
-        PERFUMERY AI CORE
+        PEFUMERY
       </Link>
       <button
         type="button"
@@ -203,8 +211,8 @@ export function ProjectSidebar() {
             height={32}
           />
           <span>
-            <b>김멋사</b>
-            <small>dkjoekfnnvle@gmail.com</small>
+            <b>{member?.name ?? '게스트'}</b>
+            <small>{member?.email ?? '로그인 후 이용 가능'}</small>
           </span>
         </Link>
       </div>

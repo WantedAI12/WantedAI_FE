@@ -1,18 +1,30 @@
+'use client';
+
 import { ProjectSidebar } from '@/components/layout/project-sidebar';
-
-const statusCards = [
-  ['후보 생성 큐 대기', '3'],
-  ['평균 후보 생성 시간', '41s'],
-  ['기권 현황', '6.2%'],
-];
-
-const events = [
-  ['11:02', '원료 데이터 동기화 (공급업체 A)', '정상'],
-  ['10:47', '안전 게이트 평가 모델 배포 v2.3.1', '정상'],
-  ['09:15', '관능 데이터 스키마 검증 실패 3건', '주의'],
-];
+import { useEffect, useState } from 'react';
+import { apiUrl } from '@/lib/api/client';
 
 export function OperationsWorkspace() {
+  const [health, setHealth] = useState('확인 중');
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(apiUrl('/actuator/health'), { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error('Health check failed');
+        return response.json();
+      })
+      .then((result) =>
+        setHealth(
+          (result as { status?: string }).status === 'UP'
+            ? '정상'
+            : '확인 필요',
+        ),
+      )
+      .catch(() => {
+        if (!controller.signal.aborted) setHealth('연결 실패');
+      });
+    return () => controller.abort();
+  }, []);
   return (
     <div className="wf-layout wf-operations-page">
       <ProjectSidebar />
@@ -22,29 +34,39 @@ export function OperationsWorkspace() {
           <p>작업 큐, 감사 로그, 관측성 지표입니다.</p>
         </header>
         <div className="wf-operations-content">
-          <h2>전체 현황</h2>
-          <div className="wf-operations-cards">
-            {statusCards.map(([label, value]) => (
-              <article key={label}>
-                <b>{label}</b>
-                <strong>{value}</strong>
-              </article>
-            ))}
+          <div className="ops-section-heading">
+            <h2>전체 현황</h2>
+            <output className="ops-health">API 서버 · {health}</output>
           </div>
+          <div className="wf-operations-cards">
+            {['후보 생성 큐 대기', '평균 후보 생성 시간', '기권 현황'].map(
+              (label) => (
+                <article key={label}>
+                  <b>{label}</b>
+                  <strong aria-label="데이터 미제공">—</strong>
+                </article>
+              ),
+            )}
+          </div>
+          <p className="ops-data-note">운영 지표는 아직 제공되지 않습니다.</p>
           <h2 className="wf-events-title">최근 시스템 이벤트</h2>
-          <section className="wf-events-table">
-            <div className="head">
-              <b>시각</b>
-              <b>이벤트</b>
-              <b>상태</b>
-            </div>
-            {events.map(([time, event, status]) => (
-              <div key={time}>
-                <time>{time}</time>
-                <span>{event}</span>
-                <span>{status}</span>
-              </div>
-            ))}
+          <section className="ops-events" aria-label="최근 시스템 이벤트">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">시각</th>
+                  <th scope="col">이벤트</th>
+                  <th scope="col">상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colSpan={3} className="ops-empty">
+                    시스템 이벤트 조회 기능이 아직 제공되지 않습니다.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </section>
         </div>
       </section>

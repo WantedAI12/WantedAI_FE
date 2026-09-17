@@ -1,4 +1,4 @@
-# Perfumery AI Core Frontend
+# Pefumery Frontend
 
 향 개발 프로젝트의 요청, 후보 조향식, 원료, 안전·규제 검토를 관리하는 React 기반 R&D 워크스페이스입니다.
 
@@ -11,7 +11,9 @@ npm run dev
 ```
 
 기본 주소는 `http://localhost:3000`입니다. 개발 중 `/api/v1` 요청은
-`http://localhost:8080`에서 실행 중인 백엔드로 전달됩니다.
+`https://api.perfumery.studio`로 전달됩니다. 배포 빌드에서도
+`https://api.perfumery.studio/api/v1`을 사용하며,
+`NEXT_PUBLIC_API_BASE_URL`로 다른 백엔드를 지정할 수 있습니다.
 
 ## 주요 구조
 
