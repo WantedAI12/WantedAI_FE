@@ -4,7 +4,6 @@ html{scroll-behavior:smooth}
 /* Keep page scrolling available while hiding the duplicate in-page scrollbar. */
 html{scrollbar-width:none;-ms-overflow-style:none}
 html::-webkit-scrollbar{display:none}
-@media(min-width:1101px){body{zoom:var(--desktop-fit-scale,1)}}
 
 /* Shared dropdown indicator: use a drawn chevron instead of a text glyph. */
 .wf-chevron{display:inline-block;width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);transform-origin:center;vertical-align:middle;margin-left:9px;font-size:0;line-height:0}

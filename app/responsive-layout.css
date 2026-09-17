@@ -1,0 +1,108 @@
+/* Layout uses CSS pixels, never a viewport-height-dependent page zoom. */
+.wf-main, .wf-detail, .wf-structured-grid > *, .wf-formula-cols > *,
+.wf-safety-layout > *, .wf-org-content > * { min-width: 0; }
+.wf-profile-card, .wf-profile-edit-card { width: 100%; max-width: 1048px; }
+.wf-profile-identity > div { min-width: 0; overflow-wrap: anywhere; }
+.wf-profile-avatar { flex-shrink: 0; }
+
+/* Both tall monitors and short laptop windows get a fully reachable menu. */
+.has-project-sidebar .project-sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.has-project-sidebar .project-sidebar nav { flex: 0 0 auto; padding-bottom: 32px; }
+.has-project-sidebar .project-sidebar-user {
+  position: static;
+  flex-shrink: 0;
+  margin: auto 24px 28px;
+  padding-top: 24px;
+  min-width: 0;
+}
+.project-sidebar-user > span { min-width: 0; overflow-wrap: anywhere; }
+.project-sidebar-user img { flex-shrink: 0; }
+
+/* Keep the login form in document flow even when an error increases its height. */
+.wf-auth {
+  height: auto;
+  min-height: 100dvh;
+  padding: 36px clamp(20px, 4vw, 80px) 48px;
+  box-sizing: border-box;
+}
+.wf-auth > .wf-auth-brand { position: relative; inset: auto; display: inline-block; }
+.wf-auth .wf-auth-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 551px);
+  align-items: center;
+  gap: clamp(32px, 5vw, 96px);
+  width: 100%;
+  max-width: 1280px;
+  margin: clamp(40px, 7vh, 90px) auto 0;
+}
+.wf-auth .wf-auth-grid > section { position: static; inset: auto; transform: none; min-width: 0; }
+.wf-auth .wf-auth-card { width: 100%; box-sizing: border-box; }
+.wf-auth-message { font-size: clamp(40px, 4.4vw, 64px); }
+.wf-auth-script { max-width: 100%; height: auto; }
+.wf-auth-row { flex-wrap: wrap; gap: 12px; }
+
+@media (min-width: 1101px) {
+  .has-project-sidebar .wf-layout { max-width: none; min-height: 100dvh; height: auto; }
+  .has-project-sidebar .project-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100dvh;
+    min-height: 0;
+    z-index: 200;
+  }
+  .has-project-sidebar .project-sidebar-panel { top: 97px; bottom: 0; height: auto; }
+  .has-project-sidebar .wf-detail { margin-left: 215px; width: calc(100% - 215px); }
+  .has-project-sidebar .wf-main { padding-left: clamp(32px, 4vw, 96px); }
+  .has-project-sidebar .wf-org-page .wf-main,
+  .has-project-sidebar .wf-operations-page .wf-main,
+  .has-project-sidebar .wf-data-page .wf-main { padding-left: 0; padding-right: 0; }
+  .has-project-sidebar .wf-structured-page .wf-structured-grid {
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    gap: clamp(24px, 3vw, 60px);
+  }
+  .has-project-sidebar .wf-structured-page .wf-intent-card { padding: 36px 28px; height: auto; }
+  .has-project-sidebar .wf-structured-page .wf-intent-row { column-gap: 16px; }
+  .wf-rail-right { height: auto; bottom: 0; min-height: calc(100dvh - 97px); }
+  .wf-org-content, .wf-safety-content, .wf-detail-body,
+  .wf-operations-content, .wf-data-content { box-sizing: border-box; }
+}
+
+@media (min-width: 1101px) and (max-width: 1440px) {
+  .has-project-sidebar .wf-request-page .wf-main { margin-right: 0; }
+  .wf-request-page .wf-rail-right { display: none; }
+  .pm-grid { grid-template-columns: minmax(0, 1fr); }
+  .pm-list, .pm-detail { min-height: 0; }
+  .pm-list { min-height: 500px; }
+  .has-project-sidebar .wf-structured-page .wf-structured-grid { grid-template-columns: minmax(0, 1fr); }
+  .wf-structured-grid .wf-intent-card { margin-top: 16px; }
+  .wf-formula-cols, .is-formula-detail .wf-formula-cols { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .wf-profile-card { height: auto; min-height: 247px; }
+  .wf-profile-card dl { gap: 24px; flex-wrap: wrap; padding-right: 160px; }
+}
+
+/* Decorative banners keep their natural height on ultrawide displays. */
+@media (min-width: 1920px) {
+  .pm-page .wf-org-header:after,
+  .wf-org-header:after { background-size: auto 100%; background-repeat: no-repeat; }
+}
+
+@media (max-width: 1100px) {
+  .wf-auth .wf-auth-grid { grid-template-columns: minmax(0, 551px); justify-content: center; }
+  .wf-auth .wf-auth-grid > section:first-child { display: none; }
+}
+
+@media (max-width: 700px) {
+  .wf-auth { padding: 24px 16px 40px; }
+  .wf-auth .wf-auth-grid { margin-top: 32px; }
+  .wf-auth .wf-auth-card { padding: 32px 22px; }
+  .wf-profile-identity { gap: 16px; flex-wrap: wrap; }
+  .wf-profile-card dl { padding-right: 0; }
+}

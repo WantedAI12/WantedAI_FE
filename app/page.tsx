@@ -1,10 +1,5 @@
-import { DashboardOverview } from '@/components/dashboard/dashboard-overview';
-import { AppShell } from '@/components/layout/app-shell';
+import { LoginForm } from '@/components/auth/login-form';
 
 export default function Home() {
-  return (
-    <AppShell currentPath="/">
-      <DashboardOverview />
-    </AppShell>
-  );
+  return <LoginForm />;
 }

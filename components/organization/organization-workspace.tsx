@@ -1,7 +1,7 @@
 'use client';
 
 import Link from '@/components/ui/app-link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ProjectSidebar } from '@/components/layout/project-sidebar';
 import { ProjectManagementPanel } from './project-management-panel';
