@@ -19,6 +19,7 @@ export function EvidenceDownloadDialog({ candidate, onClose }: { candidate: Cand
   const job = useRef<JobResponse | null>(null);
   const [format, setFormat] = useState<'PDF' | 'JSON'>('PDF');
   const [phase, setPhase] = useState<'form' | 'loading' | 'error'>('form');
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const formula = `FORMULA ${String(candidate.candidateId).padStart(2, '0')}`;
   useEffect(() => {
     const element = dialog.current;
@@ -53,16 +54,17 @@ export function EvidenceDownloadDialog({ candidate, onClose }: { candidate: Cand
       if (job.current.status !== 'SUCCEEDED' || !job.current.resultRefId) throw new Error('보고서 생성 지연');
       const report = await evidenceApi.report(job.current.resultRefId);
       signal.throwIfAborted();
-      let blob: Blob;
-      if (format === 'JSON') {
-        if (!report.reportData) throw new Error('보고서 데이터 없음');
-        blob = new Blob([JSON.stringify(report.reportData, null, 2)], { type: 'application/json;charset=utf-8' });
-      } else {
+      if (format === 'PDF') {
         if (!report.fileUrl) throw new Error('PDF 파일 없음');
-        const response = await fetch(report.fileUrl, { signal });
-        if (!response.ok) throw new Error('PDF 다운로드 실패');
-        blob = await response.blob();
+        const fileUrl = new URL(report.fileUrl, window.location.origin);
+        if (!['https:', 'http:'].includes(fileUrl.protocol)) throw new Error('잘못된 PDF 주소');
+        // Use an explicit click after generation to avoid delayed popup blocking.
+        setPdfUrl(fileUrl.href);
+        setPhase('form');
+        return;
       }
+      if (!report.reportData) throw new Error('보고서 데이터 없음');
+      const blob = new Blob([JSON.stringify(report.reportData, null, 2)], { type: 'application/json;charset=utf-8' });
       signal.throwIfAborted();
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
@@ -83,6 +85,7 @@ export function EvidenceDownloadDialog({ candidate, onClose }: { candidate: Cand
   return <dialog ref={dialog} className={`ea-download-dialog ${phase === 'error' ? 'is-error' : ''}`} aria-labelledby="ea-download-title" onCancel={(event) => { event.preventDefault(); onClose(); }}>
     {phase === 'error' ? <><h2 id="ea-download-title">다운로드에 실패했습니다.</h2><p>잠시 후 다시 시도해주세요.</p><footer><button type="button" onClick={() => void download()}>다시 시도</button><button type="button" className="primary" onClick={onClose}>닫기</button></footer></> : <form onSubmit={(event) => { event.preventDefault(); void download(); }}>
       <h2 id="ea-download-title">다운로드</h2>
+      {pdfUrl && format === 'PDF' && <output>보고서가 준비되었습니다. PDF 열기를 누르면 새 탭에서 열립니다.</output>}
       <div className="ea-download-fields">
         <label>다운로드 대상<input value={formula} readOnly /></label>
         <label>버전<input value={`현재 버전 #${candidate.currentVersion.versionId}`} readOnly /></label>
@@ -90,7 +93,7 @@ export function EvidenceDownloadDialog({ candidate, onClose }: { candidate: Cand
         <fieldset disabled={phase === 'loading'}><legend>파일형식</legend>{(['PDF', 'JSON'] as const).map((item) => <label key={item}><input type="radio" name="report-format" value={item} checked={format === item} onChange={() => setFormat(item)} />{item}</label>)}</fieldset>
       </div>
       {phase === 'loading' && <output className="ea-download-progress">보고서를 준비하고 있습니다.</output>}
-      <footer><button type="button" onClick={onClose}>취소</button><button type="submit" className="primary" disabled={phase === 'loading'}>{phase === 'loading' ? '준비 중…' : '다운로드'}</button></footer>
+      <footer><button type="button" onClick={onClose}>닫기</button>{pdfUrl && format === 'PDF' ? <a className="primary ea-pdf-link" href={pdfUrl} target="_blank" rel="noopener noreferrer">PDF 열기 (새 탭)</a> : <button type="submit" className="primary" disabled={phase === 'loading'}>{phase === 'loading' ? '준비 중…' : '다운로드'}</button>}</footer>
     </form>}
   </dialog>;
 }

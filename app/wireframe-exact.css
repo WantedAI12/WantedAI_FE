@@ -982,6 +982,7 @@ html::-webkit-scrollbar{display:none}
 .ea-download-fields input[type=radio]:checked{background:#402017;border-color:#402017}
 .ea-download-dialog footer{display:flex;justify-content:flex-end;gap:15px;margin-top:135px}
 .ea-download-dialog footer button{height:42px;min-width:100px;padding:0 24px;border:1px solid #575450;border-radius:8px;background:transparent;color:#464646;font-size:16px;cursor:pointer}
+.ea-download-dialog footer .ea-pdf-link{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 24px;border:1px solid #402017;border-radius:8px;font-size:16px;text-decoration:none;box-sizing:border-box}
 .ea-download-dialog footer .primary{min-width:126px;border-color:#402017;background:#402017;color:#fff}
 .ea-download-dialog footer button:disabled{opacity:.5;cursor:not-allowed}
 .ea-download-progress{margin-top:20px;font-size:14px}
