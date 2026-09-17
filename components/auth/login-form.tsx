@@ -23,7 +23,7 @@ export function LoginForm() {
     setError('');
     try {
       await authApi.login({ email, password }, remember);
-      location.assign('/projects');
+      location.assign('/');
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : '로그인에 실패했습니다.');
     } finally {
@@ -36,7 +36,7 @@ export function LoginForm() {
     setError('');
     try {
       await authApi.guestLogin();
-      location.assign('/projects');
+      location.assign('/');
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : '게스트 로그인을 시작하지 못했습니다.');
       setGuestLoading(false);
