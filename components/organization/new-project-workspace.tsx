@@ -28,8 +28,11 @@ export function NewProjectWorkspace() {
     setSaving(true);
     setNotice('');
     try {
+      const today = new Date();
+      const startDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       await projectApi.create({
         name: name.trim(),
+        startDate,
         description: description.trim(),
         dueDate: typeof dueDate === 'string' ? dueDate || null : null,
       });

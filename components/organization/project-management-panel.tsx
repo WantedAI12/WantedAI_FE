@@ -219,7 +219,7 @@ export function ProjectManagementPanel({
                 </div>
               </div>
               <p>
-                {date(selected.startDate)}~{date(selected.dueDate)}
+                {date(selected.startDate || selected.createdAt)}~{date(selected.dueDate)}
                 <span>담당자: {summary?.owner ?? '조회 중'}</span>
               </p>
             </header>
@@ -279,7 +279,7 @@ export function ProjectManagementPanel({
                   </div>
                   <div>
                     <dt>시작일</dt>
-                    <dd>{date(selected.startDate)}</dd>
+                    <dd>{date(selected.startDate || selected.createdAt)}</dd>
                   </div>
                   <div>
                     <dt>설명</dt>

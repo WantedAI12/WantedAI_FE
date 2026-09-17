@@ -7,7 +7,7 @@ import { ProjectSidebar } from '@/components/layout/project-sidebar';
 import { ProjectManagementPanel } from './project-management-panel';
 import { OrganizationDirectory } from './organization-directory';
 import { FormulaManagementWorkspace } from './formula-management-workspace';
-import { projectApi, requestApi } from '@/lib/api/resources';
+import { candidateApi, projectApi, requestApi } from '@/lib/api/resources';
 import { routes } from '@/lib/routes';
 import type {
   FragranceRequestResponse,
@@ -146,12 +146,26 @@ function ProjectOrganizationWorkspace({
   useEffect(() => {
     if (!editOpen || !selectedId) return;
     let alive = true;
-    requestApi
-      .list(selectedId)
-      .then((page) => {
+    async function loadVisibleRequests() {
+      const visible: FragranceRequestResponse[] = [];
+      let pageNumber = 0;
+      while (alive) {
+        const page = await requestApi.list(selectedId!, undefined, pageNumber, 100);
+        for (let offset = 0; offset < page.content.length && alive; offset += 8) {
+          const batch = page.content.slice(offset, offset + 8);
+          const candidates = await Promise.all(batch.map((request) => candidateApi.list(request.requestId)));
+          visible.push(...batch.filter((_, index) => candidates[index].length > 0));
+        }
+        if (!page.hasNext || !page.content.length) break;
+        pageNumber += 1;
+      }
+      return visible;
+    }
+    loadVisibleRequests()
+      .then((items) => {
         if (!alive) return;
-        setEditRequests(page.content);
-        setEditRequestId(page.content[0]?.requestId ?? null);
+        setEditRequests(items);
+        setEditRequestId(items[0]?.requestId ?? null);
       })
       .catch((error: unknown) => {
         if (alive)
@@ -588,7 +602,7 @@ function ProjectOrganizationWorkspace({
             <label>
               시작일{' '}
               <input
-                value={selected?.startDate || '미등록'}
+                value={selected?.startDate || selected?.createdAt?.slice(0, 10) || '미등록'}
                 readOnly
                 aria-readonly="true"
               />
