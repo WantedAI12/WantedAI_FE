@@ -1,0 +1,82 @@
+/* Keep markers visible without implying a regulatory verdict that is unavailable. */
+.wf-experiment-page.is-safety .wf-compliance-row > .wf-compliance-dot {
+  --marker-color: #667085;
+  width: 14px;
+  height: 14px;
+  border: 0;
+  background: var(--marker-color);
+  opacity: 1;
+}
+.wf-experiment-page.is-safety .wf-compliance-dot.is-pass { --marker-color: #00bf91; }
+.wf-experiment-page.is-safety .wf-compliance-dot.is-review { --marker-color: #eab900; }
+.wf-experiment-page.is-safety .wf-compliance-dot.is-blocked { --marker-color: #ff351a; }
+.wf-experiment-page.is-safety .wf-compliance-row > .wf-compliance-dot.is-muted { opacity: .65; }
+
+@media (max-width: 760px) {
+  .wf-experiment-page.is-safety .wf-compliance { min-width: 0; overflow: visible; }
+  .wf-experiment-page.is-safety .wf-compliance .wf-filter-pills { flex-wrap: wrap; gap: 8px; }
+  .wf-experiment-page.is-safety .wf-compliance-head { display: none; }
+  .wf-experiment-page.is-safety .wf-compliance-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    height: auto;
+    min-height: 122px;
+    min-width: 0;
+    gap: 18px 6px;
+    margin-top: 16px;
+    padding: 16px 12px;
+    border: 1px solid #d9d3ce;
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
+  .wf-experiment-page.is-safety .wf-compliance-row > span:first-child {
+    grid-column: 1 / 4;
+    grid-row: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+  }
+  .wf-experiment-page.is-safety .wf-compliance-row > b {
+    grid-column: 4;
+    grid-row: 1;
+    justify-self: end;
+    font-size: 12px;
+    white-space: normal;
+    text-align: right;
+  }
+  .wf-experiment-page.is-safety .wf-compliance-row > .wf-compliance-dot {
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-self: stretch;
+    gap: 9px;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .wf-experiment-page.is-safety .wf-compliance-row > .wf-compliance-dot::before {
+    content: attr(data-regulation);
+    order: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #474747;
+    text-align: center;
+    white-space: normal;
+  }
+  .wf-experiment-page.is-safety .wf-compliance-row > .wf-compliance-dot::after {
+    content: '';
+    order: 1;
+    display: block;
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--marker-color);
+  }
+}

@@ -4,9 +4,19 @@ import Link from '@/components/ui/app-link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ProjectSidebar } from '@/components/layout/project-sidebar';
+import { ProjectManagementPanel } from './project-management-panel';
+import { OrganizationDirectory } from './organization-directory';
+import { FormulaManagementWorkspace } from './formula-management-workspace';
 import { projectApi, requestApi } from '@/lib/api/resources';
 import { routes } from '@/lib/routes';
-import type { FragranceRequestResponse, ProjectMemberResponse, ProjectResponse, Role, WorkChecklistItemResponse, WorkChecklistItemType } from '@/types/domain';
+import type {
+  FragranceRequestResponse,
+  ProjectMemberResponse,
+  ProjectResponse,
+  Role,
+  WorkChecklistItemResponse,
+  WorkChecklistItemType,
+} from '@/types/domain';
 
 const roles: { value: Role; label: string }[] = [
   { value: 'ORG_ADMIN', label: '조직 관리자' },
@@ -28,7 +38,21 @@ const checklistLabels: Record<WorkChecklistItemType, string> = {
   FINAL_CONFIRMATION: '최종 조향식 확정',
 };
 
-export function OrganizationWorkspace({ forcedView }: { forcedView?: 'overview' | 'members' | 'team' | 'projects' | 'formulas' } = {}) {
+type OrganizationView = 'overview' | 'members' | 'team' | 'projects' | 'formulas';
+
+export function OrganizationWorkspace({ forcedView }: { forcedView?: OrganizationView } = {}) {
+  const params = useSearchParams();
+  const view = forcedView ?? params.get('view') ?? 'overview';
+  if (view === 'formulas') return <FormulaManagementWorkspace />;
+  if (view === 'overview' || view === 'members' || view === 'team') return <OrganizationDirectory />;
+  return <ProjectOrganizationWorkspace forcedView={forcedView} />;
+}
+
+function ProjectOrganizationWorkspace({
+  forcedView,
+}: {
+  forcedView?: 'overview' | 'members' | 'team' | 'projects' | 'formulas';
+} = {}) {
   const params = useSearchParams();
   const view = forcedView ?? params.get('view') ?? 'overview';
   const [projects, setProjects] = useState<ProjectResponse[]>([]);
@@ -38,6 +62,11 @@ export function OrganizationWorkspace({ forcedView }: { forcedView?: 'overview' 
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ProjectResponse | null>(
+    null,
+  );
+  const [deleteSaving, setDeleteSaving] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [search, setSearch] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<Role>('PERFUMER');
@@ -45,52 +74,109 @@ export function OrganizationWorkspace({ forcedView }: { forcedView?: 'overview' 
   const [editDescription, setEditDescription] = useState('');
   const [editDue, setEditDue] = useState('');
   const [editAssigneeId, setEditAssigneeId] = useState('');
-  const [editRequests, setEditRequests] = useState<FragranceRequestResponse[]>([]);
+  const [editRequests, setEditRequests] = useState<FragranceRequestResponse[]>(
+    [],
+  );
   const [editRequestId, setEditRequestId] = useState<number | null>(null);
-  const [editChecklist, setEditChecklist] = useState<WorkChecklistItemResponse[]>([]);
+  const [editChecklist, setEditChecklist] = useState<
+    WorkChecklistItemResponse[]
+  >([]);
   const [editError, setEditError] = useState('');
   const [editSaving, setEditSaving] = useState(false);
-  const [checklistSaving, setChecklistSaving] = useState<WorkChecklistItemType | null>(null);
+  const [checklistSaving, setChecklistSaving] =
+    useState<WorkChecklistItemType | null>(null);
 
   async function refreshProjects() {
     try {
       const items = await projectApi.list();
       setProjects(items);
-      setSelectedId((previous) => previous && items.some((item) => item.projectId === previous) ? previous : items[0]?.projectId ?? null);
-    } catch (error) { setNotice(error instanceof Error ? error.message : '프로젝트를 불러오지 못했습니다.'); }
-    finally { setLoading(false); }
+      setSelectedId((previous) =>
+        previous && items.some((item) => item.projectId === previous)
+          ? previous
+          : (items[0]?.projectId ?? null),
+      );
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : '프로젝트를 불러오지 못했습니다.',
+      );
+    } finally {
+      setLoading(false);
+    }
   }
-  useEffect(() => { queueMicrotask(() => { void refreshProjects(); }); }, []);
+  useEffect(() => {
+    queueMicrotask(() => {
+      void refreshProjects();
+    });
+  }, []);
   useEffect(() => {
     if (!selectedId) return;
     let alive = true;
-    projectApi.members(selectedId).then((items) => { if (alive) setMembers(items); })
-      .catch((error: unknown) => { if (alive) setNotice(error instanceof Error ? error.message : '멤버를 불러오지 못했습니다.'); });
-    return () => { alive = false; };
+    projectApi
+      .members(selectedId)
+      .then((items) => {
+        if (alive) setMembers(items);
+      })
+      .catch((error: unknown) => {
+        if (alive)
+          setNotice(
+            error instanceof Error
+              ? error.message
+              : '멤버를 불러오지 못했습니다.',
+          );
+      });
+    return () => {
+      alive = false;
+    };
   }, [selectedId]);
   useEffect(() => {
     if (!editOpen || !selectedId) return;
     let alive = true;
-    requestApi.list(selectedId).then((page) => {
-      if (!alive) return;
-      setEditRequests(page.content);
-      setEditRequestId(page.content[0]?.requestId ?? null);
-    }).catch((error: unknown) => {
-      if (alive) setEditError(error instanceof Error ? error.message : '향 요청을 불러오지 못했습니다.');
-    });
-    return () => { alive = false; };
+    requestApi
+      .list(selectedId)
+      .then((page) => {
+        if (!alive) return;
+        setEditRequests(page.content);
+        setEditRequestId(page.content[0]?.requestId ?? null);
+      })
+      .catch((error: unknown) => {
+        if (alive)
+          setEditError(
+            error instanceof Error
+              ? error.message
+              : '향 요청을 불러오지 못했습니다.',
+          );
+      });
+    return () => {
+      alive = false;
+    };
   }, [editOpen, selectedId]);
   useEffect(() => {
     if (!editOpen || !editRequestId) return;
     let alive = true;
-    requestApi.checklist(editRequestId).then((items) => { if (alive) setEditChecklist(items); })
-      .catch((error: unknown) => { if (alive) setEditError(error instanceof Error ? error.message : '체크리스트를 불러오지 못했습니다.'); });
-    return () => { alive = false; };
+    requestApi
+      .checklist(editRequestId)
+      .then((items) => {
+        if (alive) setEditChecklist(items);
+      })
+      .catch((error: unknown) => {
+        if (alive)
+          setEditError(
+            error instanceof Error
+              ? error.message
+              : '체크리스트를 불러오지 못했습니다.',
+          );
+      });
+    return () => {
+      alive = false;
+    };
   }, [editOpen, editRequestId]);
 
   const selected = projects.find((item) => item.projectId === selectedId);
-  const filteredProjects = projects.filter((item) => item.name.toLowerCase().includes(search.toLowerCase()));
-  const filteredMembers = members.filter((item) => `${item.name} ${item.email}`.toLowerCase().includes(search.toLowerCase()));
+  const filteredMembers = members.filter((item) =>
+    `${item.name} ${item.email}`.toLowerCase().includes(search.toLowerCase()),
+  );
   const isMembers = view === 'members' || view === 'team';
   const isProjects = view === 'projects';
   const isFormulas = view === 'formulas';
@@ -103,7 +189,11 @@ export function OrganizationWorkspace({ forcedView }: { forcedView?: 'overview' 
       setNotice(`${email} 멤버가 프로젝트에 추가됐습니다.`);
       setInviteOpen(false);
       setEmail('');
-    } catch (error) { setNotice(error instanceof Error ? error.message : '멤버를 추가하지 못했습니다.'); }
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : '멤버를 추가하지 못했습니다.',
+      );
+    }
   }
 
   function startEdit() {
@@ -123,37 +213,511 @@ export function OrganizationWorkspace({ forcedView }: { forcedView?: 'overview' 
     setEditSaving(true);
     setEditError('');
     try {
-      await projectApi.update(selectedId, { name: editName.trim(), description: editDescription.trim() || null, dueDate: editDue || null, ...(editAssigneeId ? { assigneeMemberId: Number(editAssigneeId) } : {}) });
+      await projectApi.update(selectedId, {
+        name: editName.trim(),
+        description: editDescription.trim() || null,
+        dueDate: editDue || null,
+        ...(editAssigneeId ? { assigneeMemberId: Number(editAssigneeId) } : {}),
+      });
       await refreshProjects();
       setEditOpen(false);
       setNotice('프로젝트 정보가 저장됐습니다.');
-    } catch (error) { setEditError(error instanceof Error ? error.message : '프로젝트 저장에 실패했습니다.'); }
-    finally { setEditSaving(false); }
+    } catch (error) {
+      setEditError(
+        error instanceof Error
+          ? error.message
+          : '프로젝트 저장에 실패했습니다.',
+      );
+    } finally {
+      setEditSaving(false);
+    }
   }
   async function toggleChecklist(item: WorkChecklistItemResponse) {
     if (!editRequestId) return;
     setChecklistSaving(item.itemType);
     setEditError('');
     try {
-      const updated = await requestApi.setChecklistCompleted(editRequestId, item.itemType, !item.completed, item.revision);
-      setEditChecklist((items) => items.map((current) => current.itemType === updated.itemType ? updated : current));
+      const updated = await requestApi.setChecklistCompleted(
+        editRequestId,
+        item.itemType,
+        !item.completed,
+        item.revision,
+      );
+      setEditChecklist((items) =>
+        items.map((current) =>
+          current.itemType === updated.itemType ? updated : current,
+        ),
+      );
+      setProjects((items) => [...items]);
     } catch (error) {
-      setEditError(error instanceof Error ? error.message : '체크리스트를 저장하지 못했습니다.');
-      try { setEditChecklist(await requestApi.checklist(editRequestId)); } catch { /* Keep the last visible state. */ }
-    } finally { setChecklistSaving(null); }
+      setEditError(
+        error instanceof Error
+          ? error.message
+          : '체크리스트를 저장하지 못했습니다.',
+      );
+      try {
+        setEditChecklist(await requestApi.checklist(editRequestId));
+      } catch {
+        /* Keep the last visible state. */
+      }
+    } finally {
+      setChecklistSaving(null);
+    }
   }
 
-  return <div className="wf-layout wf-org-page"><ProjectSidebar /><section className="wf-main">
-    <header className="wf-org-header"><h1>{isMembers ? '프로젝트 멤버' : isProjects ? '프로젝트 관리' : isFormulas ? '조향식 관리' : '조직·프로젝트 관리'}</h1><p>{isMembers ? '선택한 프로젝트에 참여하는 멤버를 확인합니다.' : '서버에 등록된 프로젝트와 멤버 정보를 확인합니다.'}</p>{isMembers ? <button type="button" onClick={() => setInviteOpen(true)} disabled={!selectedId}>+ 멤버 추가</button> : <Link className="wf-org-action" href={routes.newProject}>+ 새 프로젝트</Link>}</header>
-    <div className="wf-org-content">{notice && <output>{notice}</output>}{loading ? <p>프로젝트를 불러오는 중입니다.</p> : <>
-      {view === 'overview' && <><div className="wf-org-summary"><Link href="/organization?view=projects"><b>전체 프로젝트</b><strong>{projects.length}</strong><span>참여 중인 프로젝트</span></Link><Link href="/organization/members"><b>프로젝트 멤버</b><strong>{members.length}</strong><span>{selected?.name ?? '프로젝트 선택 필요'}</span></Link><Link href="/formulas"><b>후보 조향식</b><strong>↗</strong><span>실제 후보 목록 보기</span></Link></div><section className="wf-project-list"><div className="wf-org-section-head"><h2>프로젝트 목록</h2><Link href="/organization?view=projects">전체 보기 ›</Link></div>{projects.length ? projects.map((project) => <button type="button" className="wf-org-live-row" key={project.projectId} onClick={() => setSelectedId(project.projectId)}><b>{project.name}</b><span>{project.description || '설명 없음'}</span><span>멤버 {project.memberCount}명</span><time>{project.dueDate || '마감일 없음'}</time></button>) : <p>등록된 프로젝트가 없습니다.</p>}</section></>}
-      {(isMembers || isProjects || isFormulas) && <label className="wf-org-project-select">프로젝트 <select value={selectedId ?? ''} onChange={(event) => { setSelectedId(Number(event.target.value) || null); setSearch(''); }}><option value="">프로젝트 선택</option>{projects.map((project) => <option key={project.projectId} value={project.projectId}>{project.name}</option>)}</select></label>}
-      {isMembers && <div className="wf-member-grid"><div className="wf-member-list"><h2>멤버 목록</h2><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="이름 또는 이메일 검색" /><div className="wf-member-head"><b>이름</b><b>이메일</b><b>역할</b><b>참여일</b></div>{filteredMembers.length ? filteredMembers.map((member) => <div className="wf-org-member-row" key={member.memberId}><b>{member.name}</b><span>{member.email}</span><span>{roles.find((item) => item.value === member.role)?.label || member.role}</span><time>{member.joinedAt?.slice(0, 10) || '—'}</time></div>) : <p>표시할 멤버가 없습니다.</p>}</div><aside className="wf-member-detail"><h2>{selected?.name || '프로젝트 선택'}</h2><p>등록된 멤버 {members.length}명</p><p>이 화면은 프로젝트별 멤버를 표시합니다. 백엔드에는 조직 전체 팀 목록 API가 없습니다.</p></aside></div>}
-      {isProjects && <div className="wf-project-management"><div className="wf-managed-projects"><h2>프로젝트 목록</h2><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="프로젝트 검색" /><div className="wf-managed-project-head"><b>프로젝트명</b><b>멤버</b><b>시작일</b><b>마감일</b></div>{filteredProjects.length ? filteredProjects.map((project) => <button type="button" className={selectedId === project.projectId ? 'active' : ''} key={project.projectId} onClick={() => setSelectedId(project.projectId)}><b>{project.name}</b><span>{project.memberCount}명</span><span>{project.startDate || '—'}</span><span>{project.dueDate || '—'}</span></button>) : <p>등록된 프로젝트가 없습니다.</p>}</div><aside className="wf-project-detail is-live"><header><h2>{selected?.name || '프로젝트 선택'}</h2>{selected && <button type="button" onClick={startEdit}>수정</button>}<p>{selected?.description || '설명 없음'}</p></header>{selected && <div className="wf-project-info"><p><b>프로젝트 ID</b><span>{selected.projectId}</span></p><p><b>참여 멤버</b><span>{selected.memberCount}명</span></p><p><b>시작일</b><span>{selected.startDate || '정보 없음'}</span></p><p><b>마감일</b><span>{selected.dueDate || '정보 없음'}</span></p><p><b>내 역할</b><span>{selected.myRole}</span></p></div>}</aside></div>}
-      {isFormulas && <section className="wf-formula-list"><h2>조향식 관리</h2><p>후보 목록은 향 요청별로 조회할 수 있습니다.</p><Link href="/formulas">후보 조향식 목록으로 이동 →</Link></section>}
-    </>}</div>
-  </section>
-  {inviteOpen && <div className="wf-invite-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setInviteOpen(false); }}><form className="wf-invite-modal" onSubmit={(event) => { event.preventDefault(); void invite(); }}><button type="button" className="wf-invite-close" onClick={() => setInviteOpen(false)} aria-label="닫기">×</button><h2>멤버 초대</h2><p>{selected?.name || '프로젝트'}에 멤버를 추가합니다.</p><label><span>이메일 주소</span><input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="이메일 주소" /></label><label><span>역할 선택</span><select value={role} onChange={(event) => setRole(event.target.value as Role)}>{roles.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label><p>서버의 프로젝트 멤버 추가 API를 사용합니다. 초대 메일·수락 절차는 제공되지 않습니다.</p><footer><button type="button" onClick={() => setInviteOpen(false)}>취소</button><button type="submit">추가하기</button></footer></form></div>}
-  {editOpen && <div className="wf-project-modal-backdrop"><form className="wf-project-modal" onSubmit={(event) => { event.preventDefault(); void saveEdit(); }}><button type="button" className="wf-project-modal-close" onClick={() => setEditOpen(false)} aria-label="닫기">×</button><h2>프로젝트 정보 수정</h2><label>프로젝트 명<input required value={editName} onChange={(event) => setEditName(event.target.value)} /></label><label>프로젝트 설명<textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} /></label><label>마감일<input type="date" value={editDue} onChange={(event) => setEditDue(event.target.value)} /></label><label>담당자<select value={editAssigneeId} onChange={(event) => setEditAssigneeId(event.target.value)}><option value="" disabled>담당자를 선택해 주세요</option>{members.map((member) => <option key={member.memberId} value={member.memberId}>{member.name} ({member.email})</option>)}</select></label><section className="wf-project-edit-checklist"><h3>작업 체크리스트</h3><p>향 요청을 선택해 완료 상태를 관리합니다. 변경 시 바로 저장됩니다.</p>{editRequests.length ? <><label>향 요청<select value={editRequestId ?? ''} onChange={(event) => { setEditRequestId(Number(event.target.value) || null); setEditChecklist([]); }}><option value="" disabled>향 요청 선택</option>{editRequests.map((request) => <option key={request.requestId} value={request.requestId}>#{request.requestId} {request.structuredIntent.rawText.slice(0, 36)}</option>)}</select></label><div className="wf-project-edit-checklist-items">{editChecklist.map((item) => <label key={item.itemType}><input type="checkbox" checked={item.completed} disabled={checklistSaving !== null} onChange={() => void toggleChecklist(item)} />{checklistLabels[item.itemType]}</label>)}</div></> : <p>아직 이 프로젝트에 향 요청이 없습니다. 향 요청을 만들면 체크리스트가 생성됩니다.</p>}</section>{editError && <p className="wf-project-edit-error" role="alert">{editError}</p>}<footer><button type="button" onClick={() => setEditOpen(false)}>취소</button><button type="submit" disabled={editSaving}>{editSaving ? '저장 중...' : '확인'}</button></footer></form></div>}
-  </div>;
+  async function deleteProject() {
+    if (!deleteTarget || deleteSaving) return;
+    setDeleteSaving(true);
+    setDeleteError('');
+    try {
+      await projectApi.delete(deleteTarget.projectId);
+      const remaining = projects.filter(
+        (item) => item.projectId !== deleteTarget.projectId,
+      );
+      setProjects(remaining);
+      setSelectedId(remaining[0]?.projectId ?? null);
+      setMembers([]);
+      setDeleteTarget(null);
+      setNotice(`'${deleteTarget.name}' 프로젝트가 삭제됐습니다.`);
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error
+          ? error.message
+          : '프로젝트를 삭제하지 못했습니다.',
+      );
+    } finally {
+      setDeleteSaving(false);
+    }
+  }
+
+  return (
+    <div className={`wf-layout wf-org-page ${isProjects ? 'pm-page' : ''}`}>
+      <ProjectSidebar />
+      <section className="wf-main">
+        <header className="wf-org-header">
+          <h1>
+            {isMembers
+              ? '프로젝트 멤버'
+              : isProjects
+                ? '프로젝트'
+                : isFormulas
+                  ? '조향식 관리'
+                  : '조직·프로젝트 관리'}
+          </h1>
+          <p>
+            {isMembers
+              ? '선택한 프로젝트에 참여하는 멤버를 확인합니다.'
+              : isProjects ? '향료 조향 및 조향기 개발을 담당합니다.' : '서버에 등록된 프로젝트와 멤버 정보를 확인합니다.'}
+          </p>
+          {isMembers ? (
+            <button
+              type="button"
+              onClick={() => setInviteOpen(true)}
+              disabled={!selectedId}
+            >
+              + 멤버 추가
+            </button>
+          ) : (
+            <Link className="wf-org-action" href={routes.newProject}>
+              + 새 프로젝트
+            </Link>
+          )}
+        </header>
+        <div className="wf-org-content">
+          {notice && <output>{notice}</output>}
+          {loading ? (
+            isProjects ? (
+              <ProjectManagementPanel
+                projects={[]}
+                selectedId={null}
+                onSelect={setSelectedId}
+                onEdit={startEdit}
+                onDelete={() => {}}
+                loading
+              />
+            ) : (
+              <p>프로젝트를 불러오는 중입니다.</p>
+            )
+          ) : (
+            <>
+              {view === 'overview' && (
+                <>
+                  <div className="wf-org-summary">
+                    <Link href="/organization?view=projects">
+                      <b>전체 프로젝트</b>
+                      <strong>{projects.length}</strong>
+                      <span>참여 중인 프로젝트</span>
+                    </Link>
+                    <Link href="/organization/members">
+                      <b>프로젝트 멤버</b>
+                      <strong>{members.length}</strong>
+                      <span>{selected?.name ?? '프로젝트 선택 필요'}</span>
+                    </Link>
+                    <Link href="/formulas">
+                      <b>후보 조향식</b>
+                      <strong>↗</strong>
+                      <span>실제 후보 목록 보기</span>
+                    </Link>
+                  </div>
+                  <section className="wf-project-list">
+                    <div className="wf-org-section-head">
+                      <h2>프로젝트 목록</h2>
+                      <Link href="/organization?view=projects">
+                        전체 보기 ›
+                      </Link>
+                    </div>
+                    {projects.length ? (
+                      projects.map((project) => (
+                        <button
+                          type="button"
+                          className="wf-org-live-row"
+                          key={project.projectId}
+                          onClick={() => setSelectedId(project.projectId)}
+                        >
+                          <b>{project.name}</b>
+                          <span>{project.description || '설명 없음'}</span>
+                          <span>멤버 {project.memberCount}명</span>
+                          <time>{project.dueDate || '마감일 없음'}</time>
+                        </button>
+                      ))
+                    ) : (
+                      <p>등록된 프로젝트가 없습니다.</p>
+                    )}
+                  </section>
+                </>
+              )}
+              {(isMembers || isFormulas) && (
+                <label className="wf-org-project-select">
+                  프로젝트{' '}
+                  <select
+                    value={selectedId ?? ''}
+                    onChange={(event) => {
+                      setSelectedId(Number(event.target.value) || null);
+                      setSearch('');
+                    }}
+                  >
+                    <option value="">프로젝트 선택</option>
+                    {projects.map((project) => (
+                      <option key={project.projectId} value={project.projectId}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {isMembers && (
+                <div className="wf-member-grid">
+                  <div className="wf-member-list">
+                    <h2>멤버 목록</h2>
+                    <input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="이름 또는 이메일 검색"
+                    />
+                    <div className="wf-member-head">
+                      <b>이름</b>
+                      <b>이메일</b>
+                      <b>역할</b>
+                      <b>참여일</b>
+                    </div>
+                    {filteredMembers.length ? (
+                      filteredMembers.map((member) => (
+                        <div
+                          className="wf-org-member-row"
+                          key={member.memberId}
+                        >
+                          <b>{member.name}</b>
+                          <span>{member.email}</span>
+                          <span>
+                            {roles.find((item) => item.value === member.role)
+                              ?.label || member.role}
+                          </span>
+                          <time>{member.joinedAt?.slice(0, 10) || '—'}</time>
+                        </div>
+                      ))
+                    ) : (
+                      <p>표시할 멤버가 없습니다.</p>
+                    )}
+                  </div>
+                  <aside className="wf-member-detail">
+                    <h2>{selected?.name || '프로젝트 선택'}</h2>
+                    <p className="wf-member-detail-count">
+                      등록된 멤버 <strong>{members.length}명</strong>
+                    </p>
+                    <p className="wf-member-detail-description">
+                      이 프로젝트에 참여하는 멤버를 확인할 수 있습니다.
+                    </p>
+                  </aside>
+                </div>
+              )}
+              {isProjects && (
+                <ProjectManagementPanel
+                  projects={projects}
+                  selectedId={selectedId}
+                  onSelect={setSelectedId}
+                  onEdit={startEdit}
+                  onDelete={(project) => {
+                    setDeleteError('');
+                    setDeleteTarget(project);
+                  }}
+                />
+              )}
+              {isFormulas && (
+                <section className="wf-formula-list">
+                  <h2>조향식 관리</h2>
+                  <p>후보 목록은 향 요청별로 조회할 수 있습니다.</p>
+                  <Link href="/formulas">후보 조향식 목록으로 이동 →</Link>
+                </section>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+      {inviteOpen && (
+        <div
+          className="wf-invite-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) setInviteOpen(false);
+          }}
+        >
+          <form
+            className="wf-invite-modal"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void invite();
+            }}
+          >
+            <button
+              type="button"
+              className="wf-invite-close"
+              onClick={() => setInviteOpen(false)}
+              aria-label="닫기"
+            >
+              ×
+            </button>
+            <h2>멤버 초대</h2>
+            <p>{selected?.name || '프로젝트'}에 멤버를 추가합니다.</p>
+            <label>
+              <span>이메일 주소</span>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="이메일 주소"
+              />
+            </label>
+            <label>
+              <span>역할 선택</span>
+              <select
+                value={role}
+                onChange={(event) => setRole(event.target.value as Role)}
+              >
+                {roles.map((item) => (
+                  <option value={item.value} key={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p>
+              서버의 프로젝트 멤버 추가 API를 사용합니다. 초대 메일·수락 절차는
+              제공되지 않습니다.
+            </p>
+            <footer>
+              <button type="button" onClick={() => setInviteOpen(false)}>
+                취소
+              </button>
+              <button type="submit">추가하기</button>
+            </footer>
+          </form>
+        </div>
+      )}
+      {editOpen && (
+        <div className="wf-project-modal-backdrop">
+          <form
+            className="wf-project-modal"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void saveEdit();
+            }}
+          >
+            <button
+              type="button"
+              className="wf-project-modal-close"
+              onClick={() => setEditOpen(false)}
+              aria-label="닫기"
+            >
+              ×
+            </button>
+            <h2>프로젝트 정보 수정</h2>
+            <h3 className="pm-edit-heading">기본정보</h3>
+            <div className="pm-edit-basics">
+              <label>
+                프로젝트 명
+                <input
+                  required
+                  value={editName}
+                  onChange={(event) => setEditName(event.target.value)}
+                />
+              </label>
+              <label>
+                프로젝트 설명
+                <textarea
+                  value={editDescription}
+                  onChange={(event) => setEditDescription(event.target.value)}
+                />
+              </label>
+            </div>
+            <h3 className="pm-edit-heading">진행 사항</h3>
+            <label>
+              시작일{' '}
+              <input
+                value={selected?.startDate || '미등록'}
+                readOnly
+                aria-readonly="true"
+              />
+            </label>
+            <label>
+              마감일
+              <input
+                type="date"
+                value={editDue}
+                onChange={(event) => setEditDue(event.target.value)}
+              />
+            </label>
+            <label>
+              담당자
+              <select
+                value={editAssigneeId}
+                onChange={(event) => setEditAssigneeId(event.target.value)}
+              >
+                <option value="" disabled>
+                  담당자를 선택해 주세요
+                </option>
+                {members.map((member) => (
+                  <option key={member.memberId} value={member.memberId}>
+                    {member.name} ({member.email})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <section className="wf-project-edit-checklist">
+              <h3>작업 체크리스트</h3>
+              <p>
+                향 요청을 선택해 완료 상태를 관리합니다. 변경 시 바로
+                저장됩니다.
+              </p>
+              {editRequests.length ? (
+                <>
+                  <label>
+                    향 요청
+                    <select
+                      value={editRequestId ?? ''}
+                      onChange={(event) => {
+                        setEditRequestId(Number(event.target.value) || null);
+                        setEditChecklist([]);
+                      }}
+                    >
+                      <option value="" disabled>
+                        향 요청 선택
+                      </option>
+                      {editRequests.map((request) => (
+                        <option
+                          key={request.requestId}
+                          value={request.requestId}
+                        >
+                          #{request.requestId}{' '}
+                          {request.structuredIntent.rawText.slice(0, 36)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="wf-project-edit-checklist-items">
+                    {editChecklist.map((item) => (
+                      <label key={item.itemType}>
+                        <input
+                          type="checkbox"
+                          checked={item.completed}
+                          disabled={checklistSaving !== null}
+                          onChange={() => void toggleChecklist(item)}
+                        />
+                        {checklistLabels[item.itemType]}
+                      </label>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p>
+                  아직 이 프로젝트에 향 요청이 없습니다. 향 요청을 만들면
+                  체크리스트가 생성됩니다.
+                </p>
+              )}
+            </section>
+            {editError && (
+              <p className="wf-project-edit-error" role="alert">
+                {editError}
+              </p>
+            )}
+            <footer>
+              <button type="button" onClick={() => setEditOpen(false)}>
+                취소
+              </button>
+              <button type="submit" disabled={editSaving}>
+                {editSaving ? '저장 중...' : '확인'}
+              </button>
+            </footer>
+          </form>
+        </div>
+      )}
+      {deleteTarget && (
+        <div
+          className="wf-project-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target && !deleteSaving)
+              setDeleteTarget(null);
+          }}
+        >
+          <section
+            className="wf-project-delete-modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="project-delete-title"
+            aria-describedby="project-delete-description"
+          >
+            <h2 id="project-delete-title">프로젝트 삭제</h2>
+            <p id="project-delete-description">
+              <strong>{deleteTarget.name}</strong> 프로젝트를 삭제할까요? 연결된
+              향 요청, 후보 조향식 및 모든 하위 데이터가 함께 삭제되며 되돌릴 수
+              없습니다.
+            </p>
+            {deleteError && (
+              <p className="wf-project-edit-error" role="alert">
+                {deleteError}
+              </p>
+            )}
+            <footer>
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteSaving}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="wf-project-delete-confirm"
+                onClick={() => void deleteProject()}
+                disabled={deleteSaving}
+              >
+                {deleteSaving ? '삭제 중...' : '프로젝트 삭제'}
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+    </div>
+  );
 }

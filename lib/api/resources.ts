@@ -1,4 +1,4 @@
-import { apiRequest, tokenStorage } from '@/lib/api/client';
+import { apiRequest, apiUrl, tokenStorage } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import type {
   ApprovalGateResponse,
@@ -18,6 +18,7 @@ import type {
   IngredientResponse,
   IngredientDetailResponse,
   JobResponse,
+  LotionDetailResponse,
   HubSummaryResponse,
   LoginRequest,
   MemberResponse,
@@ -121,6 +122,8 @@ export const projectApi = {
   detail: (id: number) => apiRequest<ProjectResponse>(endpoints.project(id)),
   update: (id: number, body: ProjectUpdate) =>
     apiRequest<ProjectResponse>(endpoints.project(id), patch(body)),
+  delete: (id: number) =>
+    apiRequest<void>(endpoints.project(id), { method: 'DELETE' }),
   members: (id: number) =>
     apiRequest<ProjectMemberResponse[]>(endpoints.projectMembers(id)),
   invite: (id: number, email: string, role: Role) =>
@@ -141,16 +144,23 @@ export const projectApi = {
 
 export const jobApi = {
   detail: (id: number) => apiRequest<JobResponse>(endpoints.job(id)),
+  streamUrl: (id: number, accessToken: string) =>
+    `${apiUrl(endpoints.jobStream(id))}?access_token=${encodeURIComponent(accessToken)}`,
   retry: (id: number) =>
     apiRequest<void>(endpoints.jobRetry(id), { method: 'POST' }),
   cancel: (id: number) =>
     apiRequest<JobResponse>(endpoints.jobCancel(id), { method: 'POST' }),
 };
 export const requestApi = {
-  list: (projectId: number, status?: string) =>
-    apiRequest<PageResponse<FragranceRequestResponse>>(
-      `${endpoints.projectRequests(projectId)}${status ? `?status=${encodeURIComponent(status)}` : ''}`,
-    ),
+  list: (projectId: number, status?: string, page?: number, size?: number) => {
+    const query = new URLSearchParams();
+    if (status) query.set('status', status);
+    if (page !== undefined) query.set('page', String(page));
+    if (size !== undefined) query.set('size', String(size));
+    return apiRequest<PageResponse<FragranceRequestResponse>>(
+      `${endpoints.projectRequests(projectId)}${query.size ? `?${query}` : ''}`,
+    );
+  },
   create: (projectId: number, body: FragranceRequestCreate) =>
     apiRequest<FragranceRequestResponse>(
       endpoints.projectRequests(projectId),
@@ -179,6 +189,7 @@ export const candidateApi = {
   generate: (requestId: number) =>
     apiRequest<JobResponse>(endpoints.requestCandidates(requestId), {
       method: 'POST',
+      headers: { 'Idempotency-Key': `candidate-request-${requestId}` },
     }),
   list: (requestId: number) =>
     apiRequest<CandidateResponse[]>(endpoints.requestCandidates(requestId)),
@@ -188,6 +199,8 @@ export const candidateApi = {
     ),
   detail: (id: number) =>
     apiRequest<CandidateResponse>(endpoints.candidate(id)),
+  lotionDetail: (id: number) =>
+    apiRequest<LotionDetailResponse>(endpoints.candidateLotionDetail(id)),
   duplicate: (id: number, reason: string) =>
     apiRequest<CandidateResponse>(endpoints.candidateDuplicate(id), json({ reason })),
   memos: (id: number) => apiRequest<CandidateMemoResponse[]>(endpoints.candidateMemos(id)),

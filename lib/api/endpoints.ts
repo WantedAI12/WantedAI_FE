@@ -17,6 +17,7 @@ export const endpoints = {
   projectMember: (projectId: number, memberId: number) =>
     `/projects/${projectId}/members/${memberId}`,
   job: (jobId: number) => `/jobs/${jobId}`,
+  jobStream: (jobId: number) => `/jobs/${jobId}/stream`,
   jobRetry: (jobId: number) => `/jobs/${jobId}/retry`,
   jobCancel: (jobId: number) => `/jobs/${jobId}/cancel`,
   projectRequests: (projectId: number) => `/projects/${projectId}/requests`,
@@ -29,6 +30,7 @@ export const endpoints = {
   compareCandidates: (requestId: number) =>
     `/requests/${requestId}/candidates/compare`,
   candidate: (candidateId: number) => `/candidates/${candidateId}`,
+  candidateLotionDetail: (candidateId: number) => `/candidates/${candidateId}/lotion-detail`,
   candidateDuplicate: (candidateId: number) =>
     `/candidates/${candidateId}/duplicate`,
   candidateMemos: (candidateId: number) => `/candidates/${candidateId}/memos`,

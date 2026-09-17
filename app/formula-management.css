@@ -1,0 +1,250 @@
+.fm-page .wf-main {
+  padding: 97px 0 60px !important;
+  min-width: 0;
+  color: #474747;
+}
+.fm-hero {
+  position: relative;
+  background: #f4f4f4;
+  min-height: 247px;
+  padding: 34px 53px 44px;
+}
+.fm-hero nav {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  margin-bottom: 27px;
+}
+.fm-hero nav a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+.fm-hero h1 {
+  font-size: 36px;
+  line-height: 1.3;
+  font-weight: 400;
+  margin: 0;
+}
+.fm-hero p {
+  font-size: 15px;
+  margin: 12px 0 0;
+}
+.fm-create {
+  position: absolute;
+  right: 61px;
+  top: 53px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 183px;
+  min-height: 40px;
+  background: #3c1d15;
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 10px 20px;
+}
+.fm-content {
+  padding: 64px 9% 0 4%;
+}
+.fm-panel {
+  border: 1px solid #555;
+  border-radius: 14px;
+  padding: 30px 47px 34px;
+  min-height: 610px;
+}
+.fm-panel h2 {
+  font-size: 23px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.fm-summary {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 18px;
+}
+.fm-summary strong {
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.fm-summary span {
+  font-size: 14px;
+}
+.fm-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #555;
+  border-radius: 5px;
+  padding: 0 12px;
+  max-width: 478px;
+  margin-bottom: 17px;
+}
+.fm-search input {
+  background: transparent;
+  border: 0;
+  min-width: 0;
+  width: 100%;
+  height: 34px;
+  font-size: 13px;
+  outline: none;
+}
+.fm-search:focus-within {
+  outline: 2px solid #806245;
+  outline-offset: 3px;
+}
+.fm-table-scroll {
+  overflow-x: auto;
+}
+.fm-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 15px;
+}
+.fm-panel th {
+  text-align: left;
+  font-weight: 400;
+  height: 48px;
+}
+.fm-panel td {
+  padding: 13px 12px 13px 0;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+.fm-panel th:nth-child(1) {
+  width: 13%;
+}
+.fm-panel th:nth-child(2) {
+  width: 27%;
+}
+.fm-panel th:nth-child(3) {
+  width: 19%;
+}
+.fm-panel th:nth-child(4) {
+  width: 19%;
+}
+.fm-panel th:nth-child(5) {
+  width: 22%;
+}
+.fm-panel td a {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+.fm-panel td a:hover {
+  text-decoration: underline;
+}
+.fm-panel tbody tr:hover {
+  background: #f0ede7;
+}
+.fm-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.fm-status i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #474747;
+  flex-shrink: 0;
+}
+.fm-status-APPROVED i {
+  background: #00bf8c;
+}
+.fm-status-REJECTED i {
+  background: #e14730;
+}
+.fm-status-IN_SENSORY_TEST i {
+  background: #d29b20;
+}
+.fm-status-CONFIRMED_FOR_EXPERIMENT i {
+  background: #65819a;
+}
+.fm-panel td.fm-empty {
+  text-align: center;
+  height: 310px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #777;
+}
+.fm-empty button {
+  margin-top: 18px;
+  border: 1px solid #666;
+  border-radius: 6px;
+  background: transparent;
+  padding: 9px 20px;
+  cursor: pointer;
+}
+.fm-note {
+  font-size: 12px;
+  color: #777;
+  line-height: 1.6;
+  margin: 24px 0 0;
+}
+.fm-page :focus-visible {
+  outline: 2px solid #806245;
+  outline-offset: 3px;
+}
+@media (max-width: 1100px) {
+  .fm-content {
+    padding: 40px 4% 0;
+  }
+  .fm-panel {
+    padding: 28px;
+  }
+  .fm-hero {
+    padding-left: 4%;
+  }
+  .fm-create {
+    right: 4%;
+  }
+}
+@media (max-width: 700px) {
+  .fm-page .wf-main {
+    padding-top: 0 !important;
+  }
+  .fm-hero {
+    padding: 28px 22px;
+    min-height: 230px;
+  }
+  .fm-hero h1 {
+    font-size: 30px;
+  }
+  .fm-hero nav {
+    font-size: 12px;
+    margin-bottom: 22px;
+  }
+  .fm-create {
+    position: static;
+    width: fit-content;
+    margin-top: 24px;
+    min-width: 150px;
+  }
+  .fm-content {
+    padding: 28px 16px 0;
+  }
+  .fm-panel {
+    padding: 24px 20px;
+    min-height: 480px;
+  }
+  .fm-panel h2 {
+    font-size: 21px;
+  }
+  .fm-panel table {
+    min-width: 630px;
+  }
+  .fm-summary strong {
+    font-size: 29px;
+  }
+}

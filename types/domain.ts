@@ -214,6 +214,14 @@ export interface CandidateResponse {
   status: CandidateStatus;
   currentVersion: CandidateVersionResponse;
 }
+export interface LotionDetailResponse {
+  candidateId: Id;
+  versionId: Id;
+  status: string | null;
+  profileTargetMet: boolean | null;
+  searchIncomplete: boolean | null;
+  candidateUse: string | null;
+}
 export type CandidateMemoType = 'INPUT_NOTE' | 'REVIEW_NOTE' | 'NEXT_EXPERIMENT_NOTE';
 export interface CandidateMemoResponse {
   memoType: CandidateMemoType;
@@ -237,10 +245,10 @@ export interface CandidateRevisionPreview {
 export interface CandidateCompareRow {
   candidateId: Id;
   status: CandidateStatus;
-  goalMatchScore: number;
-  cost: number;
-  supplyStability: number;
-  modelApplicabilityPercent: number;
+  goalMatchScore: number | null;
+  cost: number | null;
+  supplyStability: number | null;
+  modelApplicabilityPercent: number | null;
 }
 export interface SafetyEvaluationResponse {
   candidateId: Id;

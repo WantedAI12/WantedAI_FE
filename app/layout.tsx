@@ -3,6 +3,12 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { DesktopViewportFit } from '@/components/layout/desktop-viewport-fit';
 import './globals.css';
 import './wireframe-exact.css';
+import './data-workspace.css';
+import './safety-compliance.css';
+import './project-management.css';
+import './operations.css';
+import './organization-directory.css';
+import './formula-management.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
