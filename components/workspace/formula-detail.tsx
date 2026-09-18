@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { LotionAssessment } from './lotion-assessment';
+import { CandidateDeleteDialog } from './candidate-delete-dialog';
 import type { LotionDetailResponse } from '@/types/domain';
 import { displayLabel, displayPercent } from '@/lib/display-labels';
 import Link from '@/components/ui/app-link';
@@ -36,6 +37,7 @@ export function FormulaDetail({ requestOnly = false }: { requestOnly?: boolean }
   const [draft, setDraft] = useState('');
   const [revisionPreview, setRevisionPreview] = useState<CandidateRevisionPreview | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [feedback, setFeedback] = useState<'download' | 'revision' | null>(null);
 
   useEffect(() => {
@@ -144,6 +146,7 @@ export function FormulaDetail({ requestOnly = false }: { requestOnly?: boolean }
   return (
     <div className="wf-layout">
       <aside className="wf-rail wf-rail-left" />
+      {deleteOpen && candidate && !requestOnly && candidate.status !== 'APPROVED' && <CandidateDeleteDialog candidateId={candidate.candidateId} onClose={() => setDeleteOpen(false)} />}
       <section className="wf-detail">
         <div className="wf-detail-hero">
           <Link href="/formulas" className="wf-back"><Image className="wf-back-icon" src="/figma/back-arrow.svg" alt="" width={20} height={20} />후보 목록으로 돌아가기</Link>
@@ -154,6 +157,8 @@ export function FormulaDetail({ requestOnly = false }: { requestOnly?: boolean }
             <button type="button" className="wf-btn wf-btn-dark" onClick={() => setConfirmOpen(true)} disabled={!candidate || candidate.status === 'CONFIRMED_FOR_EXPERIMENT'}>{candidate?.status === 'CONFIRMED_FOR_EXPERIMENT' ? '최종후보 선택됨' : '최종후보 선택'}</button>
             <button type="button" className="wf-btn" onClick={duplicateCandidate} disabled={!candidate}>후보 복제</button>
             <button type="button" className="wf-btn" onClick={() => setEditing(true)} disabled={!candidate}>후보 수정</button>
+            {!requestOnly && <button type="button" className="wf-btn wf-candidate-delete" onClick={() => setDeleteOpen(true)} disabled={!candidate || loading || candidate.status === 'APPROVED'} title={candidate?.status === 'APPROVED' ? '승인된 후보는 삭제할 수 없습니다.' : undefined}>후보 삭제</button>}
+            {candidate?.status === 'APPROVED' && <p className="wf-action-notice">승인된 후보는 삭제할 수 없습니다.</p>}
             {notice && <output className="wf-action-notice">{notice}</output>}
           </div>
         </div>

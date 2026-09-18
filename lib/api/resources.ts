@@ -186,6 +186,8 @@ export const requestApi = {
     ),
 };
 export const candidateApi = {
+  delete: (id: number) =>
+    apiRequest<void>(endpoints.candidate(id), { method: 'DELETE' }),
   generate: (requestId: number) =>
     apiRequest<JobResponse>(endpoints.requestCandidates(requestId), {
       method: 'POST',

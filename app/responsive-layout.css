@@ -1,4 +1,15 @@
 /* Layout uses CSS pixels, never a viewport-height-dependent page zoom. */
+.wf-detail-actions .wf-candidate-delete { color: #a12c24; border-color: #a12c24; }
+.wf-detail-actions .wf-candidate-delete:disabled { opacity: .5; cursor: not-allowed; }
+.candidate-delete-dialog { position: fixed; inset: 0; margin: auto; width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: clamp(24px, 5vw, 36px); box-sizing: border-box; border: 1px solid #d9d3ce; border-radius: 14px; background: #efebe2; color: #434343; }
+.candidate-delete-dialog::backdrop { background: rgb(0 0 0 / 55%); }
+.candidate-delete-dialog h2 { font-size: 24px; font-weight: 600; }
+.candidate-delete-dialog p { margin-top: 20px; line-height: 1.6; overflow-wrap: anywhere; }
+.candidate-delete-dialog footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.candidate-delete-dialog button { min-height: 44px; padding: 10px 22px; border: 1px solid #555; border-radius: 8px; cursor: pointer; }
+.candidate-delete-dialog .candidate-delete-confirm { background: #a12c24; border-color: #a12c24; color: white; }
+.candidate-delete-dialog button:disabled { opacity: .6; cursor: wait; }
+.candidate-delete-dialog .candidate-delete-error { color: #a12c24; }
 .pm-project-fields { border: 0; margin: 0; padding: 0; min-width: 0; }
 .pm-project-fields:disabled input, .pm-project-fields:disabled textarea, .pm-project-fields:disabled select { color: #65615c; background: #e5e2db; opacity: 1; cursor: default; }
 .pm-permission-note { margin: 16px 24px; font-size: 13px; line-height: 1.6; }
