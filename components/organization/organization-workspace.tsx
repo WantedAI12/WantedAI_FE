@@ -9,6 +9,7 @@ import { OrganizationDirectory } from './organization-directory';
 import { FormulaManagementWorkspace } from './formula-management-workspace';
 import { candidateApi, projectApi, requestApi } from '@/lib/api/resources';
 import { routes } from '@/lib/routes';
+import { canUpdateProject } from '@/lib/project-permissions';
 import type {
   FragranceRequestResponse,
   ProjectMemberResponse,
@@ -201,7 +202,7 @@ function ProjectOrganizationWorkspace({
   }, [editOpen, editRequestId]);
 
   const selected = projects.find((item) => item.projectId === selectedId);
-  const canEditProject = Boolean(selected && ['ORG_ADMIN', 'PROJECT_MANAGER'].includes(selected.myRole));
+  const canEditProject = canUpdateProject(selected);
   const filteredMembers = members.filter((item) =>
     `${item.name} ${item.email}`.toLowerCase().includes(search.toLowerCase()),
   );
@@ -238,7 +239,7 @@ function ProjectOrganizationWorkspace({
   }
   async function saveEdit() {
     if (!canEditProject) {
-      setEditError('프로젝트 정보 수정은 조직 관리자·프로젝트 관리자만 가능합니다.');
+      setEditError('여러 명이 참여하는 프로젝트는 조직 관리자·프로젝트 관리자만 정보를 수정할 수 있습니다.');
       return;
     }
     if (!selectedId || !editName.trim()) return;
