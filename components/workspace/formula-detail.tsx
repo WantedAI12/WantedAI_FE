@@ -1,6 +1,8 @@
 'use client';
 
 import Image from 'next/image';
+import { LotionAssessment } from './lotion-assessment';
+import type { LotionDetailResponse } from '@/types/domain';
 import { displayLabel, displayPercent } from '@/lib/display-labels';
 import Link from '@/components/ui/app-link';
 import { useEffect, useState } from 'react';
@@ -21,6 +23,8 @@ export function FormulaDetail({ requestOnly = false }: { requestOnly?: boolean }
   const [active, setActive] = useState<Tab>('조향식 구성');
   const [candidate, setCandidate] = useState<CandidateResponse | null>(null);
   const [request, setRequest] = useState<FragranceRequestResponse | null>(null);
+  const [lotion, setLotion] = useState<LotionDetailResponse | null>(null);
+  const [lotionFailed, setLotionFailed] = useState(false);
   const [safety, setSafety] = useState<SafetyEvaluationResponse | null>(null);
   const [prediction, setPrediction] = useState<PredictionResponse | null>(null);
   const [evidence, setEvidence] = useState<EvidenceLog[]>([]);
@@ -55,7 +59,18 @@ export function FormulaDetail({ requestOnly = false }: { requestOnly?: boolean }
         predictionApi.detail(candidateId), evidenceApi.logs(candidateId), candidateApi.memos(candidateId),
       ]);
       if (!alive) return;
-      if (results[0].status === 'fulfilled') setRequest(results[0].value);
+      if (results[0].status === 'fulfilled') {
+        setRequest(results[0].value);
+        setLotion(null);
+        setLotionFailed(false);
+        if (results[0].value.structuredIntent.productCategory === 'BODY_LOTION') {
+          try {
+            const detail = await candidateApi.lotionDetail(candidateId);
+            if (alive) setLotion(detail);
+          } catch { if (alive) setLotionFailed(true); }
+        }
+      }
+      if (!alive) return;
       if (results[1].status === 'fulfilled') setSafety(results[1].value);
       if (results[2].status === 'fulfilled') setPrediction(results[2].value);
       if (results[3].status === 'fulfilled') { setEvidence(results[3].value); setEvidenceError(false); }
@@ -146,6 +161,7 @@ export function FormulaDetail({ requestOnly = false }: { requestOnly?: boolean }
         <div className="wf-detail-body">
           {loading ? <p>데이터를 불러오는 중입니다.</p> : !candidate && !requestOnly ? <p>{notice || '후보를 찾을 수 없습니다.'}</p> : !candidate && !request ? <p>{notice || '향 요청을 찾을 수 없습니다.'}</p> : <>
             {active === '조향식 구성' && <CompositionSection version={version ?? null} request={request} onDownload={downloadNotes} />}
+            {request?.structuredIntent.productCategory === 'BODY_LOTION' && (active === '조향식 구성' || active === '성능 프록시') && <LotionAssessment detail={lotion} failed={lotionFailed} />}
             {active === '성능 프록시' && <PerformanceSection version={version ?? null} request={request} prediction={prediction} />}
             {active === '안전 / 규제' && <SafetySection safety={safety} request={request} />}
             {active === '근거&데이터' && <EvidenceSection evidence={evidence} ingredientCount={ingredients.length} prediction={prediction} safety={safety} error={evidenceError} onRetry={retryEvidence} />}

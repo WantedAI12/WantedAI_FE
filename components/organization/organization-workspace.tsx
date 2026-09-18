@@ -201,6 +201,7 @@ function ProjectOrganizationWorkspace({
   }, [editOpen, editRequestId]);
 
   const selected = projects.find((item) => item.projectId === selectedId);
+  const canEditProject = Boolean(selected && ['ORG_ADMIN', 'PROJECT_MANAGER'].includes(selected.myRole));
   const filteredMembers = members.filter((item) =>
     `${item.name} ${item.email}`.toLowerCase().includes(search.toLowerCase()),
   );
@@ -236,6 +237,10 @@ function ProjectOrganizationWorkspace({
     setEditOpen(true);
   }
   async function saveEdit() {
+    if (!canEditProject) {
+      setEditError('프로젝트 정보 수정은 조직 관리자·프로젝트 관리자만 가능합니다.');
+      return;
+    }
     if (!selectedId || !editName.trim()) return;
     setEditSaving(true);
     setEditError('');
@@ -579,7 +584,9 @@ function ProjectOrganizationWorkspace({
             >
               ×
             </button>
-            <h2 id="project-edit-title">프로젝트 정보 수정</h2>
+            <h2 id="project-edit-title">{canEditProject ? '프로젝트 정보 수정' : '프로젝트 정보 조회'}</h2>
+            {!canEditProject && <p>프로젝트 정보는 읽기 전용입니다. 아래 작업 체크리스트는 관리할 수 있습니다.</p>}
+            <fieldset disabled={!canEditProject} className="pm-project-fields">
             <h3 className="pm-edit-heading">기본정보</h3>
             <div className="pm-edit-basics">
               <label>
@@ -631,6 +638,7 @@ function ProjectOrganizationWorkspace({
                 ))}
               </select>
             </label>
+            </fieldset>
             <section className="wf-project-edit-checklist">
               <h3>작업 체크리스트</h3>
               <p>
@@ -690,11 +698,11 @@ function ProjectOrganizationWorkspace({
             )}
             <footer>
               <button type="button" onClick={() => setEditOpen(false)}>
-                취소
+                닫기
               </button>
-              <button type="submit" disabled={editSaving}>
+              {canEditProject && <button type="submit" disabled={editSaving}>
                 {editSaving ? '저장 중...' : '확인'}
-              </button>
+              </button>}
             </footer>
           </form>
         </div>

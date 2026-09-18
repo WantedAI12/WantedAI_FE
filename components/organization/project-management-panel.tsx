@@ -211,7 +211,7 @@ export function ProjectManagementPanel({
                 <div className="pm-actions">
                   <button onClick={onEdit}>
                     <Pencil size={13} />
-                    수정
+                    {['ORG_ADMIN', 'PROJECT_MANAGER'].includes(selected.myRole) ? '수정' : '조회·체크리스트'}
                   </button>
                   {['ORG_ADMIN', 'PROJECT_MANAGER'].includes(
                     selected.myRole,
@@ -223,6 +223,7 @@ export function ProjectManagementPanel({
                 <span>담당자: {summary?.owner ?? '조회 중'}</span>
               </p>
             </header>
+            {!['ORG_ADMIN', 'PROJECT_MANAGER'].includes(selected.myRole) && <p className="pm-permission-note">프로젝트 정보 수정은 조직 관리자·프로젝트 관리자만 가능합니다. 체크리스트는 별도로 관리할 수 있습니다.</p>}
             {!summary ? (
               <div className="pm-empty">
                 <LoaderCircle

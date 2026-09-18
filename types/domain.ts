@@ -221,6 +221,16 @@ export interface LotionDetailResponse {
   profileTargetMet: boolean | null;
   searchIncomplete: boolean | null;
   candidateUse: string | null;
+  scoreKind?: string | null;
+  score?: unknown;
+  manufacturingApproved?: boolean | null;
+  allUserRequirementsVerified?: boolean | null;
+  humanSimilarityPercent?: number | null;
+  productModel?: unknown;
+  preparation?: unknown;
+  perceptionModel?: unknown;
+  recipe?: unknown;
+  closestCandidate?: unknown;
 }
 export type CandidateMemoType = 'INPUT_NOTE' | 'REVIEW_NOTE' | 'NEXT_EXPERIMENT_NOTE';
 export interface CandidateMemoResponse {
