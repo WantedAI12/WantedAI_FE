@@ -161,6 +161,7 @@ export function FormulaDetail({ requestOnly = false }: { requestOnly?: boolean }
         <div className="wf-detail-body">
           {loading ? <p>데이터를 불러오는 중입니다.</p> : !candidate && !requestOnly ? <p>{notice || '후보를 찾을 수 없습니다.'}</p> : !candidate && !request ? <p>{notice || '향 요청을 찾을 수 없습니다.'}</p> : <>
             {active === '조향식 구성' && <CompositionSection version={version ?? null} request={request} onDownload={downloadNotes} />}
+            {active === '조향식 구성' && <section className="lotion-assessment"><h2>조향 설명</h2><p style={{ whiteSpace: 'pre-wrap' }}>{(request?.structuredIntent.productCategory === 'BODY_LOTION' ? lotion?.perfumerNotes : version?.perfumerNotes)?.trim() || '조향 설명이 제공되지 않았습니다.'}</p><p>AI가 작성한 설명으로, 실제 시향·검증 결과나 제조 승인을 의미하지 않습니다.</p></section>}
             {request?.structuredIntent.productCategory === 'BODY_LOTION' && (active === '조향식 구성' || active === '성능 프록시') && <LotionAssessment detail={lotion} failed={lotionFailed} />}
             {active === '성능 프록시' && <PerformanceSection version={version ?? null} request={request} prediction={prediction} />}
             {active === '안전 / 규제' && <SafetySection safety={safety} request={request} />}

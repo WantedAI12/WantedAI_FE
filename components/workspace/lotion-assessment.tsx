@@ -7,7 +7,7 @@ export function LotionAssessment({ detail, failed }: { detail: LotionDetailRespo
   const score = detail.score;
   return <section className="lotion-assessment">
     <h2>로션 목표 평가</h2>
-    <p>요청 농도는 입력값입니다. 현재 로션 생성 API는 이 값을 전달하지 않고 모델 기본 조건을 사용하므로, 서버 배합의 향료 함량과 다를 수 있습니다. 실제 생성 조건은 아래 서버 원문에서 확인할 수 있습니다.</p>
+    <p>요청 농도는 생성 시 전달하는 입력값이며, 서버 배합의 향료 함량은 생성 결과입니다. 과거 후보에는 이전 생성 조건이 남아 있을 수 있습니다. 실제 생성 조건은 아래 서버 원문에서 확인해 주세요.</p>
     <dl>
       <div><dt>향 프로필 목표</dt><dd>{verdict(detail.profileTargetMet)}</dd></div>
       <div><dt>탐색 상태</dt><dd>{detail.searchIncomplete == null ? '미제공' : detail.searchIncomplete ? '탐색 미완료' : '탐색 완료'}</dd></div>

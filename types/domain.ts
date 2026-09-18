@@ -191,6 +191,7 @@ export interface CandidateVersionResponse {
   ingredients: CandidateVersionIngredient[];
   cost: number | null;
   generationRationale: string | null;
+  perfumerNotes?: string | null;
   generationMeta: GenerationMeta;
   temporal: {
     timepointsMinutes: number[];
@@ -215,6 +216,7 @@ export interface CandidateResponse {
   currentVersion: CandidateVersionResponse;
 }
 export interface LotionDetailResponse {
+  perfumerNotes?: string | null;
   candidateId: Id;
   versionId: Id;
   status: string | null;
