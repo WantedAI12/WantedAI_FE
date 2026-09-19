@@ -9,7 +9,7 @@ import {
   LoaderCircle,
 } from 'lucide-react';
 import { projectApi, requestApi } from '@/lib/api/resources';
-import { canUpdateProject } from '@/lib/project-permissions';
+import { canRequestProjectDeletion, canUpdateProject } from '@/lib/project-permissions';
 import type {
   ProjectResponse,
   WorkChecklistItemResponse,
@@ -214,9 +214,7 @@ export function ProjectManagementPanel({
                     <Pencil size={13} />
                     {canUpdateProject(selected) ? '수정' : '조회·체크리스트'}
                   </button>
-                  {['ORG_ADMIN', 'PROJECT_MANAGER'].includes(
-                    selected.myRole,
-                  ) && <button onClick={() => onDelete(selected)}>삭제</button>}
+                  {canRequestProjectDeletion(selected) && <button type="button" onClick={() => onDelete(selected)}>삭제</button>}
                 </div>
               </div>
               <p>
