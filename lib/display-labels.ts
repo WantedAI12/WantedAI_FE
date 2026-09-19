@@ -1,5 +1,5 @@
 const labels: Record<string, string> = {
-  EAU_DE_PARFUM: '오 드 퍼퓸', EAU_DE_TOILETTE: '오 드 뚜왈렛', EAU_DE_COLOGNE: '오 드 코롱', BODY_LOTION: '바디로션',
+  EAU_DE_PARFUM: '오 드 퍼퓸 (향수)', EAU_DE_TOILETTE: '오 드 뚜왈렛 (향수)', EAU_DE_COLOGNE: '오 드 코롱 (향수)', BODY_LOTION: '바디로션',
   UNDER_REVIEW: '검토 중', CONFIRMED_FOR_EXPERIMENT: '시험 확정',
   IN_SENSORY_TEST: '관능 시험 중', APPROVED: '승인', REJECTED: '반려',
   SUCCEEDED: '완료', FAILED: '실패', PENDING: '대기 중', RUNNING: '진행 중',

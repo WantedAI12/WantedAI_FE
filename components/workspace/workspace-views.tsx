@@ -328,9 +328,9 @@ export function RequestWorkspace() {
                   setProductCategory(event.target.value as ProductCategory)
                 }
               >
-                <option value="EAU_DE_PARFUM">오 드 퍼퓸</option>
-                <option value="EAU_DE_TOILETTE">오 드 뚜왈렛</option>
-                <option value="EAU_DE_COLOGNE">오 드 코롱</option>
+                <option value="EAU_DE_PARFUM">오 드 퍼퓸 (향수)</option>
+                <option value="EAU_DE_TOILETTE">오 드 뚜왈렛 (향수)</option>
+                <option value="EAU_DE_COLOGNE">오 드 코롱 (향수)</option>
                 <option value="BODY_LOTION">바디로션</option>
               </select>
             </label>
