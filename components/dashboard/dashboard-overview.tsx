@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { hubApi } from '@/lib/api/resources';
 import { tokenStorage } from '@/lib/api/client';
 import type { HubSummaryResponse } from '@/types/domain';
+import { UsageGuide } from './usage-guide';
 
 export function DashboardOverview() {
   const [activityOpen, setActivityOpen] = useState(true);
@@ -50,6 +51,7 @@ export function DashboardOverview() {
             <Link href="/projects" className="wf-btn">
               프로젝트 보기
             </Link>
+            <UsageGuide />
           </div>
         </div>
       </section>

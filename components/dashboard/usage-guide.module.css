@@ -1,0 +1,18 @@
+.dialog { box-sizing: border-box; width: min(640px, calc(100% - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: clamp(20px, 4vw, 36px); border: 1px solid #d8d0c4; border-radius: 24px; background: #faf8f3; color: #343330; overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 24px 80px #0003; }
+.dialog::backdrop { background: #201b1766; }
+.header { display: flex; align-items: flex-start; gap: 16px; justify-content: space-between; }
+.header h2 { font-size: clamp(20px, 4vw, 27px); line-height: 1.4; margin: 0; }
+.eyebrow { font-size: 11px; letter-spacing: .12em; color: #786957; margin: 0 0 10px; }
+.close { flex: 0 0 40px; width: 40px; height: 40px; border: 1px solid #d8d0c4; border-radius: 50%; background: transparent; font-size: 25px; cursor: pointer; }
+.intro { font-size: 14px; line-height: 1.7; margin: 16px 0 22px; color: #66615a; }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; }
+.steps li { display: flex; align-items: flex-start; gap: 14px; }
+.number { display: grid; place-items: center; flex: 0 0 32px; height: 32px; background: #eae4d8; border-radius: 50%; font-size: 14px; font-weight: 600; }
+.steps h3 { font-size: 16px; margin: 3px 0 5px; }
+.steps p { font-size: 14px; line-height: 1.65; margin: 0; overflow-wrap: anywhere; }
+.note { background: #eee9df; border-radius: 12px; padding: 14px; margin: 24px 0; font-size: 12px; line-height: 1.7; }
+.footer { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+.footer button { min-width: 0; flex: 1 1 140px; }
+.hint, .notice { font-size: 12px; line-height: 1.6; color: #726b62; }
+.hint { margin: 14px 0 0; }
+.dialog button:focus-visible { outline: 2px solid #684b30; outline-offset: 3px; }
