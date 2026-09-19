@@ -3,6 +3,7 @@
 import Link from '@/components/ui/app-link';
 import Image from 'next/image';
 import { routes } from '@/lib/routes';
+import { readHiddenRequests, saveHiddenRequests } from '@/lib/hidden-failed-requests';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ProjectSidebar } from '@/components/layout/project-sidebar';
@@ -902,7 +903,7 @@ export function FormulaWorkspace() {
     queueMicrotask(() =>
       setHiddenFailedByProject((current) => ({
         ...current,
-        [projectId]: [],
+        [projectId]: readHiddenRequests(window.localStorage, projectId),
       })),
     );
     const replacements = savedReplacementRequests(projectId);
@@ -1235,10 +1236,16 @@ export function FormulaWorkspace() {
       ...current,
       [projectId]: updated,
     }));
+    if (!saveHiddenRequests(window.localStorage, projectId, updated)) {
+      setMessage('브라우저에 숨김 상태를 저장하지 못했습니다. 현재 화면에서만 숨겨집니다.');
+    }
   }
 
   function restoreFailedRequests() {
     setHiddenFailedByProject((current) => ({ ...current, [projectId]: [] }));
+    if (!saveHiddenRequests(window.localStorage, projectId, [])) {
+      setMessage('숨김 해제 상태를 저장하지 못했습니다. 새로고침 시 다시 숨겨질 수 있습니다.');
+    }
   }
 
   async function startGeneration(id: number) {
@@ -1328,7 +1335,7 @@ export function FormulaWorkspace() {
                     type="button"
                     onClick={() => hideFailedRequests(visibleFailedIds)}
                   >
-                    실패 항목 잠시 숨기기 ({visibleFailedIds.length})
+                    실패 항목 숨기기 ({visibleFailedIds.length})
                   </button>
                 )}
                 {hiddenFailedCount > 0 && (
