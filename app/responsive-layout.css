@@ -1,4 +1,8 @@
 /* Layout uses CSS pixels, never a viewport-height-dependent page zoom. */
+.guest-session-notice { position: relative; z-index: 10; padding: 16px 24px; background: #fff3d6; color: #513a19; line-height: 1.6; overflow-wrap: anywhere; }
+.guest-session-notice button { margin-top: 8px; border: 1px solid currentColor; border-radius: 6px; padding: 6px 16px; }
+.ops-events { overflow-x: auto; }
+.ops-events td { white-space: normal; overflow-wrap: anywhere; }
 @media (max-width: 1100px) {
   .wf-request-page .wf-request-fields { min-width: 0; max-width: 100%; box-sizing: border-box; }
   .wf-request-page .wf-request-fields label { min-width: 0; }

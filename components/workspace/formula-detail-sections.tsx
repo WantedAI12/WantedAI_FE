@@ -3,7 +3,7 @@ import type { CandidateVersionResponse, EvidenceLog, FragranceRequestResponse, P
 import { displayLabel, displayPercent } from '@/lib/display-labels';
 const shown = (value: string | number | null | undefined) => displayLabel(value == null ? null : String(value));
 const pct = displayPercent;
-const productName = (value: string | null | undefined) => value === 'EAU_DE_PARFUM' ? '향수' : value === 'BODY_LOTION' ? '바디로션' : shown(value);
+const productName = (value: string | null | undefined) => shown(value);
 const concentration = (request: FragranceRequestResponse | null) => request?.structuredIntent.usageConcentrationPercent;
 
 export function CompositionSection({ version, request, onDownload }: { version: CandidateVersionResponse | null; request: FragranceRequestResponse | null; onDownload: () => void }) {

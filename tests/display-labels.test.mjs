@@ -13,6 +13,9 @@ test('percent display rounds without changing the source value', () => {
 });
 
 test('known status and role codes have readable labels', () => {
+  assert.equal(displayLabel('EAU_DE_PARFUM'), '오 드 퍼퓸');
+  assert.equal(displayLabel('EAU_DE_TOILETTE'), '오 드 뚜왈렛');
+  assert.equal(displayLabel('EAU_DE_COLOGNE'), '오 드 코롱');
   assert.equal(displayLabel('UNDER_REVIEW'), '검토 중');
   assert.equal(displayLabel('PERFUMER'), '조향사');
   assert.equal(displayLabel(null), '미제공');

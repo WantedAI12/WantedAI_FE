@@ -27,8 +27,7 @@ import type {
 } from '@/types/domain';
 
 const candidateJobStorageKey = 'perfumery:candidate-jobs:v1';
-const hiddenFailedRequestStorageKey = 'perfumery:hidden-failed-requests:v1';
-// Confirmed requests are immutable on the server; keep replacement attempts in one visible card.
+// Track retry relationships for ordering only; preserve all server requests.
 const replacementRequestStorageKey = 'perfumery:replacement-requests:v1';
 
 function savedReplacementRequests(projectId: string): Record<number, number> {
@@ -91,34 +90,6 @@ function originalRequestId(
     if (visited.has(next)) return current;
     visited.add(next);
     current = next;
-  }
-}
-
-function savedHiddenFailedRequests(projectId: string): number[] {
-  if (!projectId) return [];
-  try {
-    const stored: unknown = JSON.parse(
-      window.localStorage.getItem(
-        `${hiddenFailedRequestStorageKey}:${projectId}`,
-      ) || '[]',
-    );
-    return Array.isArray(stored)
-      ? stored.filter((id): id is number => Number.isSafeInteger(id) && id > 0)
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function rememberHiddenFailedRequests(projectId: string, requestIds: number[]) {
-  if (!projectId) return;
-  try {
-    window.localStorage.setItem(
-      `${hiddenFailedRequestStorageKey}:${projectId}`,
-      JSON.stringify([...new Set(requestIds)]),
-    );
-  } catch {
-    /* Hiding still works for the current page when storage is unavailable. */
   }
 }
 
@@ -193,11 +164,7 @@ export function RequestWorkspace() {
         setSourceRequest(source);
         const intent = source.structuredIntent;
         setDescription(intent.rawText);
-        setProductCategory(
-          intent.productCategory === 'BODY_LOTION'
-            ? 'BODY_LOTION'
-            : 'EAU_DE_PARFUM',
-        );
+        setProductCategory(intent.productCategory ?? 'EAU_DE_PARFUM');
         if (intent.targetRegion) setTargetRegion(intent.targetRegion);
         if (intent.riskTier) setRiskTier(intent.riskTier);
         setUsageConcentration(
@@ -361,7 +328,9 @@ export function RequestWorkspace() {
                   setProductCategory(event.target.value as ProductCategory)
                 }
               >
-                <option value="EAU_DE_PARFUM">향수</option>
+                <option value="EAU_DE_PARFUM">오 드 퍼퓸</option>
+                <option value="EAU_DE_TOILETTE">오 드 뚜왈렛</option>
+                <option value="EAU_DE_COLOGNE">오 드 코롱</option>
                 <option value="BODY_LOTION">바디로션</option>
               </select>
             </label>
@@ -930,11 +899,10 @@ export function FormulaWorkspace() {
 
   useEffect(() => {
     if (!projectId) return;
-    const stored = savedHiddenFailedRequests(projectId);
     queueMicrotask(() =>
       setHiddenFailedByProject((current) => ({
         ...current,
-        [projectId]: stored,
+        [projectId]: [],
       })),
     );
     const replacements = savedReplacementRequests(projectId);
@@ -1144,10 +1112,7 @@ export function FormulaWorkspace() {
     };
   }, [requests, jobIds]);
   const replacements = replacementsByProject[projectId] ?? {};
-  const replacedRequestIds = new Set(Object.keys(replacements).map(Number));
-  const currentRequests = requests.filter(
-    (request) => !replacedRequestIds.has(request.requestId),
-  );
+  const currentRequests = requests;
   const hiddenFailedIds = new Set(hiddenFailedByProject[projectId] ?? []);
   const failedRequestIds = currentRequests
     .filter(
@@ -1173,10 +1138,7 @@ export function FormulaWorkspace() {
         originalRequestId(a.requestId, replacements),
     );
   const availableCandidates = useMemo(() => {
-    const projectReplacements = replacementsByProject[projectId] ?? {};
-    const replaced = new Set(Object.keys(projectReplacements).map(Number));
     return requests
-      .filter((request) => !replaced.has(request.requestId))
       .flatMap((request) =>
         (candidateGroups[request.requestId] ?? []).map((candidate) => ({
           candidate,
@@ -1184,7 +1146,7 @@ export function FormulaWorkspace() {
           displayRequestId: request.requestNumber,
         })),
       );
-  }, [candidateGroups, projectId, replacementsByProject, requests]);
+  }, [candidateGroups, requests]);
 
   useEffect(() => {
     if (!comparisonOpen || selected.length < 2) {
@@ -1273,12 +1235,10 @@ export function FormulaWorkspace() {
       ...current,
       [projectId]: updated,
     }));
-    rememberHiddenFailedRequests(projectId, updated);
   }
 
   function restoreFailedRequests() {
     setHiddenFailedByProject((current) => ({ ...current, [projectId]: [] }));
-    rememberHiddenFailedRequests(projectId, []);
   }
 
   async function startGeneration(id: number) {
@@ -1368,7 +1328,7 @@ export function FormulaWorkspace() {
                     type="button"
                     onClick={() => hideFailedRequests(visibleFailedIds)}
                   >
-                    실패 항목 정리 ({visibleFailedIds.length})
+                    실패 항목 잠시 숨기기 ({visibleFailedIds.length})
                   </button>
                 )}
                 {hiddenFailedCount > 0 && (

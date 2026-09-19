@@ -4,6 +4,7 @@ import Link from '@/components/ui/app-link';
 import Image from 'next/image';
 import { routes } from '@/lib/routes';
 import { useState } from 'react';
+import { GuestSessionNotice } from '@/components/auth/guest-session-notice';
 
 const menu = [
   ['후보 조향식', routes.formulas],
@@ -58,6 +59,7 @@ export function AppShell({
           </div>
         </header>
       )}
+      <GuestSessionNotice />
       {children}
     </main>
   );

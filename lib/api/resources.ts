@@ -73,7 +73,7 @@ export const authApi = {
       { method: 'POST' },
       false,
     );
-    tokenStorage.set(tokens, true);
+    tokenStorage.set(tokens, true, true);
     return tokens;
   },
   signup: (body: SignupRequest) =>

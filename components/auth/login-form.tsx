@@ -5,6 +5,7 @@ import Link from '@/components/ui/app-link';
 import Image from 'next/image';
 import { authApi } from '@/lib/api/resources';
 import { ApiError } from '@/lib/api/client';
+import { GuestSessionNotice } from './guest-session-notice';
 
 export function LoginForm() {
   const [error, setError] = useState('');
@@ -56,6 +57,7 @@ export function LoginForm() {
         </section>
         <section className="wf-auth-card">
           <h2 className="wf-auth-title">로그인</h2>
+          <GuestSessionNotice />
           {error && <p className="signup-error">{error}</p>}
           <form onSubmit={submit}>
             <label className="wf-auth-label">이메일<input className="wf-auth-input" name="email" type="email" required placeholder="이메일을 입력하세요." /></label>
@@ -68,6 +70,7 @@ export function LoginForm() {
           </form>
           <div className="wf-divider" />
           <button className="wf-easy wf-guest-login" type="button" onClick={continueAsGuest} disabled={loading || guestLoading}>{guestLoading ? '게스트 시작 중...' : '게스트로 시작하기'}</button>
+          <p style={{ fontSize: 13, lineHeight: 1.6, marginTop: 12 }}>게스트로 시작할 때마다 새 계정이 생성됩니다. 이전 게스트의 프로젝트는 새 계정에서 보이지 않습니다.</p>
           <p className="wf-auth-foot">계정이 없으신가요? <Link href="/signup"><b>회원가입</b></Link></p>
         </section>
       </div>
