@@ -19,7 +19,6 @@ export function ProjectSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [testsOpen, setTestsOpen] = useState(false);
-  const [dataOpen, setDataOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [member, setMember] = useState<MemberResponse | null>(null);
   useEffect(() => {
@@ -27,7 +26,6 @@ export function ProjectSidebar() {
     authApi.me().then(setMember).catch(() => undefined);
   }, []);
   const experimentView = searchParams.get('view') ?? 'safety';
-  const dataView = searchParams.get('view') ?? 'raw';
   const isActive = (href: string) =>
     href === '/formulas'
       ? pathname.startsWith('/formulas')
@@ -116,14 +114,7 @@ export function ProjectSidebar() {
               </div>
             )}
           </div>
-          <div
-            className={`project-nav-group ${pathname === '/ingredients' ? 'active' : ''}`}
-          >
-            <button
-              type="button"
-              className="project-nav-parent"
-              onClick={() => setDataOpen((value) => !value)}
-            >
+          <Link href={routes.ingredients} className={pathname === '/ingredients' ? 'active' : ''}>
               <Image
                 src="/figma/sidebar-test.svg"
                 alt=""
@@ -131,36 +122,7 @@ export function ProjectSidebar() {
                 height={21}
               />
               <span>데이터</span>
-              <i
-                className={`wf-chevron ${dataOpen ? '' : 'is-right'}`}
-                aria-hidden="true"
-              />
-            </button>
-            {dataOpen && (
-              <div className="project-nav-children">
-                <Link
-                  className={
-                    pathname === '/ingredients' && dataView === 'sensory'
-                      ? 'active-child'
-                      : ''
-                  }
-                  href="/ingredients?view=sensory"
-                >
-                  관능 검증 관리
-                </Link>
-                <Link
-                  className={
-                    pathname === '/ingredients' && dataView === 'raw'
-                      ? 'active-child'
-                      : ''
-                  }
-                  href="/ingredients?view=raw"
-                >
-                  원료·시험 데이터
-                </Link>
-              </div>
-            )}
-          </div>
+          </Link>
           <Link
             href={routes.projects}
             className={pathname.startsWith(routes.projects) ? 'active' : ''}

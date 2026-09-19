@@ -163,6 +163,7 @@ export interface StructuredIntent {
 }
 export interface FragranceRequestResponse {
   requestId: Id;
+  requestNumber?: number | null;
   status: FragranceRequestStatus;
   structuredIntent: StructuredIntent;
   missingFields: string[];

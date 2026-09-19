@@ -787,7 +787,7 @@ function GenerationCard({
   partial,
 }: {
   request: FragranceRequestResponse;
-  displayRequestId: number;
+  displayRequestId: number | null | undefined;
   projectId: string;
   index: number;
   job?: JobResponse;
@@ -844,7 +844,7 @@ function GenerationCard({
       aria-live="polite"
     >
       <span className="wf-generation-request">
-        향 요청 {String(displayRequestId).padStart(2, '0')}
+        향 요청 {displayRequestId == null ? '—' : String(displayRequestId).padStart(2, '0')}
       </span>
       <div className="wf-generation-center">
         <h2>{title}</h2>
@@ -894,7 +894,7 @@ function GenerationCard({
             type="button"
             className="wf-btn"
             onClick={onHide}
-            aria-label={`향 요청 ${request.requestId} 실패 카드 숨기기`}
+            aria-label={`향 요청 ${displayRequestId ?? '—'} 실패 카드 숨기기`}
           >
             숨기기
           </button>
@@ -1181,10 +1181,7 @@ export function FormulaWorkspace() {
         (candidateGroups[request.requestId] ?? []).map((candidate) => ({
           candidate,
           requestId: request.requestId,
-          displayRequestId: originalRequestId(
-            request.requestId,
-            projectReplacements,
-          ),
+          displayRequestId: request.requestNumber,
         })),
       );
   }, [candidateGroups, projectId, replacementsByProject, requests]);
@@ -1405,10 +1402,7 @@ export function FormulaWorkspace() {
                 cards.push(
                   <GenerationCard
                     request={request}
-                    displayRequestId={originalRequestId(
-                      request.requestId,
-                      replacements,
-                    )}
+                    displayRequestId={request.requestNumber}
                     projectId={projectId}
                     index={index}
                     job={job}
@@ -1492,7 +1486,7 @@ export function FormulaWorkspace() {
                       FORMULA {String(candidate.candidateId).padStart(2, '0')}
                     </b>
                     <small>
-                      향 요청 {String(displayRequestId).padStart(2, '0')}
+                      향 요청 {displayRequestId == null ? '—' : String(displayRequestId).padStart(2, '0')}
                     </small>
                   </button>
                 ))}
