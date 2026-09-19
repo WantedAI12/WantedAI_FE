@@ -3,6 +3,7 @@
 import Link from '@/components/ui/app-link';
 import Image from 'next/image';
 import { routes } from '@/lib/routes';
+import { displayLabel, previewPerfumeCategory } from '@/lib/display-labels';
 import { readHiddenRequests, saveHiddenRequests } from '@/lib/hidden-failed-requests';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -165,7 +166,7 @@ export function RequestWorkspace() {
         setSourceRequest(source);
         const intent = source.structuredIntent;
         setDescription(intent.rawText);
-        setProductCategory(intent.productCategory ?? 'EAU_DE_PARFUM');
+        setProductCategory(intent.productCategory === 'BODY_LOTION' ? 'BODY_LOTION' : 'EAU_DE_PARFUM');
         if (intent.targetRegion) setTargetRegion(intent.targetRegion);
         if (intent.riskTier) setRiskTier(intent.riskTier);
         setUsageConcentration(
@@ -329,9 +330,7 @@ export function RequestWorkspace() {
                   setProductCategory(event.target.value as ProductCategory)
                 }
               >
-                <option value="EAU_DE_PARFUM">오 드 퍼퓸 (향수)</option>
-                <option value="EAU_DE_TOILETTE">오 드 뚜왈렛 (향수)</option>
-                <option value="EAU_DE_COLOGNE">오 드 코롱 (향수)</option>
+                <option value="EAU_DE_PARFUM">향수</option>
                 <option value="BODY_LOTION">바디로션</option>
               </select>
             </label>
@@ -385,6 +384,7 @@ export function RequestWorkspace() {
               aria-hidden="true"
             />
           </button>
+          <p className="wf-request-hint" aria-live="polite">{productCategory === 'BODY_LOTION' ? '결정 제품 유형: 바디로션 (농도에 따라 변경되지 않습니다.)' : previewPerfumeCategory(usageConcentration) ? `농도 ${Number(usageConcentration)}% → ${displayLabel(previewPerfumeCategory(usageConcentration))} (미리보기)` : '사용 농도를 입력하면 세부 향수 유형이 자동 결정됩니다. 미입력 시 오 드 퍼퓸으로 요청합니다.'} 저장 후에는 서버가 결정한 제품 유형을 표시합니다.</p>
           {advancedOpen && (
             <div className="wf-request-fields">
               <label>
@@ -567,7 +567,7 @@ export function StructuredWorkspace() {
         ['ACCORD', request.structuredIntent.accords.join(', ') || '미지정'],
         ['INTENSITY', request.structuredIntent.intensity ?? '미지정'],
         ['LONGEVITY', request.structuredIntent.longevity ?? '미지정'],
-        ['PRODUCT', request.structuredIntent.productCategory ?? '미지정'],
+        ['PRODUCT', displayLabel(request.structuredIntent.productCategory)],
         ['REGION', request.structuredIntent.targetRegion ?? '미지정'],
         [
           'PRICE CAP',

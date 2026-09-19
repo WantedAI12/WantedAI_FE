@@ -1,5 +1,5 @@
 const labels: Record<string, string> = {
-  EAU_DE_PARFUM: '오 드 퍼퓸 (향수)', EAU_DE_TOILETTE: '오 드 뚜왈렛 (향수)', EAU_DE_COLOGNE: '오 드 코롱 (향수)', BODY_LOTION: '바디로션',
+  EAU_DE_PARFUM: '오 드 퍼퓸', EAU_DE_TOILETTE: '오 드 뚜왈렛', EAU_DE_COLOGNE: '오 드 코롱', BODY_LOTION: '바디로션',
   UNDER_REVIEW: '검토 중', CONFIRMED_FOR_EXPERIMENT: '시험 확정',
   IN_SENSORY_TEST: '관능 시험 중', APPROVED: '승인', REJECTED: '반려',
   SUCCEEDED: '완료', FAILED: '실패', PENDING: '대기 중', RUNNING: '진행 중',
@@ -10,6 +10,16 @@ const labels: Record<string, string> = {
   SUPPLIER: '공급업체', AUDITOR: '감사자',
 };
 export const displayLabel = (value: string | null | undefined) => value ? labels[value] ?? value : '미제공';
+export function previewPerfumeCategory(concentration: string): string | null {
+  if (!concentration.trim()) return null;
+  const value = Number(concentration);
+  if (!Number.isFinite(value) || value < 0) return null;
+  return value < 5 ? 'EAU_DE_COLOGNE' : value < 15 ? 'EAU_DE_TOILETTE' : 'EAU_DE_PARFUM';
+}
+export const displayCandidateRationale = (value: string) => value.replaceAll(
+  'closest_candidate는 미승인 후보입니다.',
+  '목표 점수(90점)를 넘는 조향식은 찾지 못해, 가장 가까운 후보를 보여드립니다. 참고용으로 확인해 주세요.',
+);
 export const displayPercent = (value: number | null | undefined) => {
   if (value == null || !Number.isFinite(value)) return '미제공';
   if (value > 0 && value < 0.01) return '0.01% 미만';

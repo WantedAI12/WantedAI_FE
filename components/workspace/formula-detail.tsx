@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { LotionAssessment } from './lotion-assessment';
 import { CandidateDeleteDialog } from './candidate-delete-dialog';
 import type { LotionDetailResponse } from '@/types/domain';
-import { displayLabel, displayPercent } from '@/lib/display-labels';
+import { displayLabel, displayPercent, displayCandidateRationale } from '@/lib/display-labels';
 import Link from '@/components/ui/app-link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -151,7 +151,7 @@ export function FormulaDetail({ requestOnly = false }: { requestOnly?: boolean }
         <div className="wf-detail-hero">
           <Link href="/formulas" className="wf-back"><Image className="wf-back-icon" src="/figma/back-arrow.svg" alt="" width={20} height={20} />후보 목록으로 돌아가기</Link>
           <h1 className="wf-detail-title">{candidate ? `FORMULA ${String(candidate.candidateId).padStart(2, '0')}` : requestOnly ? `향 요청 ${String(candidateId).padStart(2, '0')}` : '후보 조향식'}</h1>
-          <p className="wf-detail-sub">{requestOnly ? '후보 조향식이 생성되면 이곳에서 배합과 검증 정보를 확인할 수 있습니다.' : version?.generationRationale || (loading ? '불러오는 중…' : '후보 설명이 제공되지 않았습니다.')}</p>
+          <p className="wf-detail-sub">{requestOnly ? '후보 조향식이 생성되면 이곳에서 배합과 검증 정보를 확인할 수 있습니다.' : version?.generationRationale ? displayCandidateRationale(version.generationRationale) : (loading ? '불러오는 중…' : '후보 설명이 제공되지 않았습니다.')}</p>
           <div className="wf-detail-meta"><span>생성일&nbsp;&nbsp; {date(requestOnly ? request?.createdAt : version?.createdAt)}</span><span>버전&nbsp;&nbsp; {version ? `V${version.versionId}` : '—'}</span><span>상태&nbsp;&nbsp; {status}</span></div>
           <div className="wf-detail-actions">
             <button type="button" className="wf-btn wf-btn-dark" onClick={() => setConfirmOpen(true)} disabled={!candidate || candidate.status === 'CONFIRMED_FOR_EXPERIMENT'}>{candidate?.status === 'CONFIRMED_FOR_EXPERIMENT' ? '최종후보 선택됨' : '최종후보 선택'}</button>
